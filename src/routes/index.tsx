@@ -1,0 +1,144 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { AppHeader } from "@/components/quantum/AppHeader";
+import { Button } from "@/components/ui/button";
+import {
+  Binary,
+  BookOpen,
+  Bot,
+  CircuitBoard,
+  GaugeCircle,
+  Layers,
+  Orbit,
+  Users,
+} from "lucide-react";
+
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "QuantumLab — Learn, Build & Simulate Quantum Circuits" },
+      {
+        name: "description",
+        content:
+          "An interactive quantum computing platform: drag-and-drop circuit design, a synchronized code editor, in-browser simulation and live quantum state visualization.",
+      },
+      {
+        property: "og:title",
+        content: "QuantumLab — Learn, Build & Simulate Quantum Circuits",
+      },
+      {
+        property: "og:description",
+        content:
+          "Design quantum circuits visually or in code, run them instantly in your browser, and see Bloch spheres, amplitudes and measurement statistics update live.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Home,
+});
+
+const PHASE1 = [
+  {
+    icon: CircuitBoard,
+    title: "Drag-and-drop builder",
+    body: "Compose circuits on a wire grid with controls, targets, rotations and measurements.",
+  },
+  {
+    icon: Binary,
+    title: "Two-way code editor",
+    body: "Canvas and code share one internal representation — edit either, both stay in sync.",
+  },
+  {
+    icon: GaugeCircle,
+    title: "Browser simulation",
+    body: "A pure-TypeScript statevector engine with seeded shot sampling. No setup, no server.",
+  },
+  {
+    icon: Orbit,
+    title: "State visualization",
+    body: "Bloch spheres, probability histograms, amplitude and phase tables, step-by-step playback.",
+  },
+];
+
+const ROADMAP = [
+  { icon: Users, title: "Accounts & cloud circuits", phase: "Phase 2" },
+  { icon: Bot, title: "AI tutor, debugging & optimization", phase: "Phase 3" },
+  { icon: BookOpen, title: "Lessons, quizzes & progress", phase: "Phase 4" },
+  { icon: Layers, title: "Qiskit / PennyLane / Cirq backends", phase: "Phase 6" },
+];
+
+function Home() {
+  return (
+    <div className="min-h-screen">
+      <AppHeader />
+      <main>
+        <section className="mx-auto max-w-5xl px-4 pb-16 pt-20 text-center">
+          <p className="mb-4 font-mono text-xs uppercase tracking-[0.3em] text-primary">
+            Interactive quantum education
+          </p>
+          <h1 className="text-balance text-4xl font-bold leading-tight sm:text-6xl">
+            Stop reading about qubits.
+            <br />
+            <span className="text-primary">Start moving them.</span>
+          </h1>
+          <p className="mx-auto mt-6 max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg">
+            QuantumLab turns superposition, entanglement and quantum algorithms
+            into something you can build, run and watch — a circuit lab in your
+            browser with no installs and no hardware queue.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Button asChild size="lg">
+              <Link to="/lab">Open the Circuit Lab</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link to="/lab" hash="examples">
+                Try the Bell state
+              </Link>
+            </Button>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 pb-20">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {PHASE1.map((f) => (
+              <article key={f.title} className="panel p-5">
+                <f.icon className="mb-3 h-5 w-5 text-primary" />
+                <h2 className="mb-1.5 text-sm font-semibold">{f.title}</h2>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {f.body}
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 pb-24">
+          <h2 className="mb-1 text-lg font-semibold">What comes next</h2>
+          <p className="mb-6 text-sm text-muted-foreground">
+            The circuit lab ships first. The architecture already has room for
+            everything below.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {ROADMAP.map((r) => (
+              <div
+                key={r.title}
+                className="flex items-start gap-3 rounded-lg border border-dashed border-border p-4"
+              >
+                <r.icon className="mt-0.5 h-4 w-4 text-accent" />
+                <div>
+                  <p className="text-sm font-medium">{r.title}</p>
+                  <p className="font-mono text-[0.65rem] uppercase tracking-widest text-muted-foreground">
+                    {r.phase}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+      <footer className="border-t border-border py-8 text-center font-mono text-xs text-muted-foreground">
+        QuantumLab · built for a quantum-ready workforce
+      </footer>
+    </div>
+  );
+}
