@@ -14,10 +14,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/useSession";
 import { LESSONS } from "@/lib/learn/content";
 import { CHALLENGES } from "@/lib/learn/challenges";
+import { getInstructorCohorts, getInstructorCohortDetails, createCohort as createCohortAction, addAssignment as addAssignmentAction, removeAssignment as removeAssignmentAction } from "@/lib/cohorts/actions";
 
 export const Route = createFileRoute("/_authenticated/instructor")({
   head: () => ({
@@ -82,16 +82,15 @@ function InstructorPage() {
   const [item, setItem] = useState(ITEMS[0]?.value ?? "");
 
   const loadCohorts = useCallback(async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from("cohorts")
-      .select("id, name, description, join_code")
-      .eq("instructor_id", user.id)
-      .order("created_at", { ascending: true });
-    setCohorts(data ?? []);
-    setActiveId((prev) => prev ?? data?.[0]?.id ?? null);
+    try {
+      const data = await getInstructorCohorts();
+      setCohorts(data ?? []);
+      setActiveId((prev) => prev ?? data?.[0]?.id ?? null);
+    } catch (err) {
+      console.error(err);
+    }
     setLoading(false);
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     void loadCohorts();
@@ -104,64 +103,17 @@ function InstructorPage() {
       setStats([]);
       return;
     }
-    const [{ data: mem }, { data: asg }] = await Promise.all([
-      supabase.from("cohort_members").select("user_id").eq("cohort_id", activeId),
-      supabase
-        .from("assignments")
-        .select("id, title, item_type, item_id")
-        .eq("cohort_id", activeId),
-    ]);
-    const ids = (mem ?? []).map((m) => m.user_id);
-    setAssignments(asg ?? []);
-
-    if (ids.length === 0) {
+    try {
+      const data = await getInstructorCohortDetails({ data: { cohortId: activeId } });
+      setMembers(data.members);
+      setAssignments(data.assignments);
+      setStats(data.stats);
+    } catch (err) {
+      console.error(err);
       setMembers([]);
+      setAssignments([]);
       setStats([]);
-      return;
     }
-    const [{ data: profiles }, { data: lessonRows }, { data: attemptRows }] =
-      await Promise.all([
-        supabase.from("profiles").select("id, display_name").in("id", ids),
-        supabase
-          .from("lesson_progress")
-          .select("user_id, completed, quiz_score, quiz_total")
-          .in("user_id", ids),
-        supabase
-          .from("challenge_attempts")
-          .select("user_id, challenge_id, passed")
-          .in("user_id", ids),
-      ]);
-
-    const nameOf = new Map(
-      (profiles ?? []).map((p) => [p.id, p.display_name] as const),
-    );
-    setMembers(ids.map((id) => ({ user_id: id, display_name: nameOf.get(id) ?? null })));
-
-    setStats(
-      ids.map((id) => {
-        const ls = (lessonRows ?? []).filter((r) => r.user_id === id);
-        const at = (attemptRows ?? []).filter((r) => r.user_id === id);
-        const scored = ls.filter((r) => r.quiz_total > 0);
-        const quizAvg =
-          scored.length === 0
-            ? 0
-            : Math.round(
-                (scored.reduce((s, r) => s + r.quiz_score / r.quiz_total, 0) /
-                  scored.length) *
-                  100,
-              );
-        return {
-          userId: id,
-          name: nameOf.get(id) ?? id.slice(0, 8),
-          lessonsDone: ls.filter((r) => r.completed).length,
-          quizAvg,
-          challengesSolved: new Set(
-            at.filter((r) => r.passed).map((r) => r.challenge_id),
-          ).size,
-          attempts: at.length,
-        };
-      }),
-    );
   }, [activeId]);
 
   useEffect(() => {
@@ -169,45 +121,41 @@ function InstructorPage() {
   }, [loadCohort]);
 
   async function createCohort() {
-    if (!user || name.trim().length === 0) return;
-    const { data, error } = await supabase
-      .from("cohorts")
-      .insert({ instructor_id: user.id, name: name.trim() })
-      .select("id, name, description, join_code")
-      .single();
-    if (error || !data) {
+    if (!name.trim()) return;
+    try {
+      const data = await createCohortAction({ data: { name: name.trim() } });
+      setName("");
+      setCohorts((c) => [...c, data]);
+      setActiveId(data.id);
+      toast.success(`Class created — join code ${data.join_code}`);
+    } catch (err) {
       toast.error("Couldn't create the class");
-      return;
     }
-    setName("");
-    setCohorts((c) => [...c, data]);
-    setActiveId(data.id);
-    toast.success(`Class created — join code ${data.join_code}`);
   }
 
   async function addAssignment() {
     if (!activeId || !item) return;
     const [type, id] = item.split(":");
+    if (!type || !id) return;
     const label =
       type === "lesson"
         ? LESSONS.find((l) => l.id === id)?.title
         : CHALLENGES.find((c) => c.id === id)?.title;
-    const { error } = await supabase.from("assignments").insert({
-      cohort_id: activeId,
-      item_type: type as string,
-      item_id: id as string,
-      title: label ?? "Assignment",
-    });
-    if (error) {
+    try {
+      await addAssignmentAction({ data: { cohortId: activeId, itemType: type, itemId: id, title: label ?? "Assignment" }});
+      await loadCohort();
+    } catch (err) {
       toast.error("Couldn't add the assignment");
-      return;
     }
-    await loadCohort();
   }
 
   async function removeAssignment(id: string) {
-    await supabase.from("assignments").delete().eq("id", id);
-    await loadCohort();
+    try {
+      await removeAssignmentAction({ data: { id } });
+      await loadCohort();
+    } catch (err) {
+      toast.error("Failed to remove assignment");
+    }
   }
 
   const active = cohorts.find((c) => c.id === activeId) ?? null;

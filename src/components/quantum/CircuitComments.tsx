@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Loader2, MessageSquare, Send, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { getCircuitComments, postCircuitComment, deleteCircuitComment } from "@/lib/circuits/actions";
 import { useSession } from "@/hooks/useSession";
 
 interface CommentRow {
@@ -22,23 +22,13 @@ export function CircuitComments({ circuitId }: { circuitId: string }) {
   const [posting, setPosting] = useState(false);
 
   const load = useCallback(async () => {
-    const { data } = await supabase
-      .from("circuit_comments")
-      .select("id, body, created_at, user_id")
-      .eq("circuit_id", circuitId)
-      .order("created_at", { ascending: true });
-    const ids = [...new Set((data ?? []).map((c) => c.user_id))];
-    const names = new Map<string, string>();
-    if (ids.length > 0) {
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, display_name")
-        .in("id", ids);
-      for (const p of profiles ?? []) names.set(p.id, p.display_name ?? "Learner");
+    try {
+      const data = await getCircuitComments({ data: { circuitId } });
+      setRows(data);
+    } catch (err) {
+      console.error(err);
+      setRows([]);
     }
-    setRows(
-      (data ?? []).map((c) => ({ ...c, author: names.get(c.user_id) ?? "Learner" })),
-    );
     setLoading(false);
   }, [circuitId]);
 
@@ -49,17 +39,23 @@ export function CircuitComments({ circuitId }: { circuitId: string }) {
   async function post() {
     if (!user || body.trim().length === 0) return;
     setPosting(true);
-    await supabase
-      .from("circuit_comments")
-      .insert({ circuit_id: circuitId, user_id: user.id, body: body.trim() });
-    setBody("");
+    try {
+      await postCircuitComment({ data: { circuitId, body: body.trim() } });
+      setBody("");
+      await load();
+    } catch (err) {
+      console.error(err);
+    }
     setPosting(false);
-    await load();
   }
 
   async function remove(id: string) {
-    await supabase.from("circuit_comments").delete().eq("id", id);
-    await load();
+    try {
+      await deleteCircuitComment({ data: { id } });
+      await load();
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   return (

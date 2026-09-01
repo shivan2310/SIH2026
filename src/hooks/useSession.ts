@@ -1,37 +1,29 @@
-import { useEffect, useState } from "react";
-import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { getAuthSession, getUserProfile } from "@/lib/auth/actions";
+
+export interface User {
+  id: string;
+  email: string;
+}
 
 export interface SessionState {
-  session: Session | null;
+  session: { user: User } | null;
   user: User | null;
   loading: boolean;
 }
 
-/** Tracks the current auth session in the browser. */
+/** Tracks the current auth session. */
 export function useSession(): SessionState {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useQuery({
+    queryKey: ["session"],
+    queryFn: () => getAuthSession(),
+  });
 
-  useEffect(() => {
-    let active = true;
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
-      if (!active) return;
-      setSession(next);
-      setLoading(false);
-    });
-    void supabase.auth.getSession().then(({ data }) => {
-      if (!active) return;
-      setSession(data.session);
-      setLoading(false);
-    });
-    return () => {
-      active = false;
-      sub.subscription.unsubscribe();
-    };
-  }, []);
-
-  return { session, user: session?.user ?? null, loading };
+  return {
+    session: data?.user ? { user: data.user } : null,
+    user: data?.user ?? null,
+    loading: isLoading,
+  };
 }
 
 export interface ProfileInfo {
@@ -42,34 +34,11 @@ export interface ProfileInfo {
 
 /** Loads the signed-in user's profile row and role. */
 export function useProfile(userId: string | undefined) {
-  const [profile, setProfile] = useState<ProfileInfo | null>(null);
+  const { data } = useQuery({
+    queryKey: ["profile", userId],
+    queryFn: () => getUserProfile({ data: { userId } }),
+    enabled: !!userId,
+  });
 
-  useEffect(() => {
-    if (!userId) {
-      setProfile(null);
-      return;
-    }
-    let active = true;
-    void (async () => {
-      const [{ data: p }, { data: roles }] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("display_name, avatar_url")
-          .eq("id", userId)
-          .maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", userId),
-      ]);
-      if (!active) return;
-      setProfile({
-        displayName: p?.display_name ?? null,
-        avatarUrl: p?.avatar_url ?? null,
-        role: roles?.[0]?.role ?? null,
-      });
-    })();
-    return () => {
-      active = false;
-    };
-  }, [userId]);
-
-  return profile;
+  return (data as ProfileInfo) ?? null;
 }

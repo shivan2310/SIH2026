@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuth } from "@/lib/auth/server";
 
 const MODEL = process.env["VITE_AI_MODEL"] || "llama3";
 
@@ -50,7 +50,7 @@ Keep answers under ~200 words unless asked for more.`;
 
 /** Context-aware chat tutor scoped to the circuit currently in the lab. */
 export const tutorChat = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator(
     (input: {
       messages: Array<{ role: "user" | "assistant"; content: string }>;
@@ -82,7 +82,7 @@ export interface CircuitAnalysis {
 
 /** Error detection, redundant-gate and depth optimization suggestions. */
 export const analyzeCircuit = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((input: { circuitCode: string; goal?: string }) => input)
   .handler(async ({ data }): Promise<CircuitAnalysis> => {
     const raw = await callGateway([
@@ -118,7 +118,7 @@ optimizations: concrete rewrites that reduce gate count or depth. Empty array if
 
 /** Natural language -> circuit DSL, ready to load into the lab. */
 export const generateCircuit = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator((input: { prompt: string }) => input)
   .handler(async ({ data }) => {
     const raw = await callGateway([
@@ -139,7 +139,7 @@ Use the smallest number of qubits that satisfies the request.`,
 
 /** Plain-English explanation of the circuit currently in the lab. */
 export const explainCircuit = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAuth])
   .inputValidator(
     (input: { circuitCode: string; level: "beginner" | "intermediate" | "advanced" }) =>
       input,
@@ -151,6 +151,21 @@ export const explainCircuit = createServerFn({ method: "POST" })
         role: "user",
         content: `Explain this circuit for a ${data.level} learner: what each stage does, the state it prepares, and what the measurement statistics should look like.\n\n${data.circuitCode}`,
       },
+    ]);
+    return { reply };
+  });
+
+export const globalChat = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .validator((input: { messages: Array<{ role: "user" | "assistant"; content: string }> }) => input)
+  .handler(async ({ data }) => {
+    const history = data.messages.slice(-20).map((m) => ({
+      role: m.role,
+      content: m.content.slice(0, 4000),
+    }));
+    const reply = await callGateway([
+      { role: "system", content: TUTOR_SYSTEM },
+      ...history,
     ]);
     return { reply };
   });

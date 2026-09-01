@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/useSession";
 import { useProgress } from "@/hooks/useProgress";
-import { supabase } from "@/integrations/supabase/client";
+import { getAssignments, joinCohort } from "@/lib/cohorts/actions";
 import { LESSONS, TRACKS, lessonsOfTrack } from "@/lib/learn/content";
 import { CHALLENGES } from "@/lib/learn/challenges";
 
@@ -51,11 +51,12 @@ function DashboardPage() {
   useEffect(() => {
     if (!user) return;
     void (async () => {
-      const { data } = await supabase
-        .from("assignments")
-        .select("id, title, item_type, item_id, due_at, cohort_id")
-        .order("due_at", { ascending: true });
-      setAssignments(data ?? []);
+      try {
+        const data = await getAssignments();
+        setAssignments(data ?? []);
+      } catch (err) {
+        console.error(err);
+      }
     })();
   }, [user, joinMsg]);
 
@@ -63,22 +64,15 @@ function DashboardPage() {
     if (!user || joinCode.trim().length === 0) return;
     setJoining(true);
     setJoinMsg(null);
-    const { data: cohort } = await supabase
-      .from("cohorts")
-      .select("id, name")
-      .eq("join_code", joinCode.trim().toUpperCase())
-      .maybeSingle();
-    if (!cohort) {
-      setJoinMsg("No class found with that code.");
+    try {
+      const { name } = await joinCohort({ data: { joinCode: joinCode.trim().toUpperCase() } });
+      setJoinMsg(`Joined ${name}.`);
+      setJoinCode("");
+    } catch (err: any) {
+      setJoinMsg(err.message || "Failed to join class.");
+    } finally {
       setJoining(false);
-      return;
     }
-    const { error } = await supabase
-      .from("cohort_members")
-      .insert({ cohort_id: cohort.id, user_id: user.id });
-    setJoinMsg(error ? "You are already in that class." : `Joined ${cohort.name}.`);
-    setJoinCode("");
-    setJoining(false);
   }
 
   const done = new Set(

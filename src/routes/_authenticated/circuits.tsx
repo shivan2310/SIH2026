@@ -14,8 +14,8 @@ import { AppHeader } from "@/components/quantum/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { supabase } from "@/integrations/supabase/client";
 import { circuitDepth, type QCircuit } from "@/lib/quantum/ir";
+import { getUserCircuits, toggleCircuitShare, deleteCircuit } from "@/lib/circuits/actions";
 
 export const Route = createFileRoute("/_authenticated/circuits")({
   head: () => ({
@@ -52,16 +52,13 @@ function CircuitsPage() {
   const [rows, setRows] = useState<CircuitRow[] | null>(null);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("circuits")
-      .select("id, title, description, data, is_public, updated_at")
-      .order("updated_at", { ascending: false });
-    if (error) {
-      toast.error(error.message);
+    try {
+      const data = await getUserCircuits();
+      setRows(data);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to load circuits");
       setRows([]);
-      return;
     }
-    setRows((data ?? []) as CircuitRow[]);
   }, []);
 
   useEffect(() => {
@@ -69,18 +66,15 @@ function CircuitsPage() {
   }, [load]);
 
   async function toggleShare(row: CircuitRow, next: boolean) {
-    const { error } = await supabase
-      .from("circuits")
-      .update({ is_public: next })
-      .eq("id", row.id);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      await toggleCircuitShare({ data: { id: row.id, isPublic: next } });
+      setRows((r) =>
+        (r ?? []).map((c) => (c.id === row.id ? { ...c, is_public: next } : c)),
+      );
+      toast.success(next ? "Anyone with the link can view" : "Circuit is private");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update sharing");
     }
-    setRows((r) =>
-      (r ?? []).map((c) => (c.id === row.id ? { ...c, is_public: next } : c)),
-    );
-    toast.success(next ? "Anyone with the link can view" : "Circuit is private");
   }
 
   async function copyLink(row: CircuitRow) {
@@ -94,13 +88,13 @@ function CircuitsPage() {
   }
 
   async function remove(row: CircuitRow) {
-    const { error } = await supabase.from("circuits").delete().eq("id", row.id);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      await deleteCircuit({ data: { id: row.id } });
+      setRows((r) => (r ?? []).filter((c) => c.id !== row.id));
+      toast.success("Circuit deleted");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete circuit");
     }
-    setRows((r) => (r ?? []).filter((c) => c.id !== row.id));
-    toast.success("Circuit deleted");
   }
 
   function open(row: CircuitRow) {

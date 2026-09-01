@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getStudentProgress, saveLessonProgressAction, saveAttemptAction } from "@/lib/learn/actions";
 import { LESSON_ORDER } from "@/lib/learn/content";
 import { CHALLENGES } from "@/lib/learn/challenges";
 
@@ -30,19 +30,15 @@ export function useProgress(userId: string | undefined) {
       setLoading(false);
       return;
     }
-    const [{ data: l }, { data: a }] = await Promise.all([
-      supabase
-        .from("lesson_progress")
-        .select("lesson_id, completed, quiz_score, quiz_total, updated_at")
-        .eq("user_id", userId),
-      supabase
-        .from("challenge_attempts")
-        .select("challenge_id, passed, created_at")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false }),
-    ]);
-    setLessons(l ?? []);
-    setAttempts(a ?? []);
+    try {
+      const data = await getStudentProgress();
+      setLessons(data.lessons ?? []);
+      setAttempts(data.attempts ?? []);
+    } catch (err) {
+      console.error("Failed to load progress", err);
+      setLessons([]);
+      setAttempts([]);
+    }
     setLoading(false);
   }, [userId]);
 
@@ -104,18 +100,14 @@ export async function saveLessonProgress(input: {
   quizScore: number;
   quizTotal: number;
 }) {
-  const { error } = await supabase.from("lesson_progress").upsert(
-    {
-      user_id: input.userId,
-      lesson_id: input.lessonId,
+  await saveLessonProgressAction({
+    data: {
+      lessonId: input.lessonId,
       completed: input.completed,
-      quiz_score: input.quizScore,
-      quiz_total: input.quizTotal,
-      updated_at: new Date().toISOString(),
+      quizScore: input.quizScore,
+      quizTotal: input.quizTotal,
     },
-    { onConflict: "user_id,lesson_id" },
-  );
-  if (error) throw error;
+  });
 }
 
 /** Record a graded challenge submission. */
@@ -126,12 +118,12 @@ export async function saveAttempt(input: {
   code: string;
   feedback: string;
 }) {
-  const { error } = await supabase.from("challenge_attempts").insert({
-    user_id: input.userId,
-    challenge_id: input.challengeId,
-    passed: input.passed,
-    code: input.code,
-    feedback: input.feedback,
+  await saveAttemptAction({
+    data: {
+      challengeId: input.challengeId,
+      passed: input.passed,
+      code: input.code,
+      feedback: input.feedback,
+    },
   });
-  if (error) throw error;
 }

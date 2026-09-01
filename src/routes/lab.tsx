@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getCircuit } from "@/lib/circuits/actions";
 import { SaveCircuitPanel } from "@/components/quantum/SaveCircuitPanel";
 import { AIPanel } from "@/components/quantum/AIPanel";
 import { AppHeader } from "@/components/quantum/AppHeader";
@@ -91,17 +91,17 @@ function LabPage() {
     if (!id || loadedRef.current === id) return;
     loadedRef.current = id;
     void (async () => {
-      const { data, error } = await supabase
-        .from("circuits")
-        .select("data")
-        .eq("id", id)
-        .maybeSingle();
-      if (error || !data) {
+      try {
+        const data = await getCircuit({ data: { id } });
+        if (!data) {
+          toast.error("Couldn't open that circuit");
+          return;
+        }
+        lab.loadCircuit(data.data as unknown as QCircuit);
+        setCircuitId(id);
+      } catch (err) {
         toast.error("Couldn't open that circuit");
-        return;
       }
-      lab.loadCircuit(data.data as unknown as QCircuit);
-      setCircuitId(id);
     })();
   }, [search.circuit, lab]);
 

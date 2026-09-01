@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { supabase } from "@/integrations/supabase/client";
+import { getCircuit, saveCircuit } from "@/lib/circuits/actions";
 import { useSession } from "@/hooks/useSession";
 import type { QCircuit } from "@/lib/quantum/ir";
 
@@ -28,15 +28,15 @@ export function SaveCircuitPanel({ circuit, circuitId, onSaved }: Props) {
     if (!circuitId || !user) return;
     let active = true;
     void (async () => {
-      const { data } = await supabase
-        .from("circuits")
-        .select("title, description, is_public")
-        .eq("id", circuitId)
-        .maybeSingle();
-      if (!active || !data) return;
-      setTitle(data.title);
-      setDescription(data.description ?? "");
-      setIsPublic(data.is_public);
+      try {
+        const data = await getCircuit({ data: { id: circuitId } });
+        if (!active || !data) return;
+        setTitle(data.title);
+        setDescription(data.description ?? "");
+        setIsPublic(data.isPublic);
+      } catch (err) {
+        console.error(err);
+      }
     })();
     return () => {
       active = false;
@@ -61,24 +61,23 @@ export function SaveCircuitPanel({ circuit, circuitId, onSaved }: Props) {
 
   async function save() {
     setBusy(true);
-    const payload = {
-      user_id: user!.id,
-      title: title.trim() || "Untitled circuit",
-      description: description.trim() || null,
-      data: JSON.parse(JSON.stringify(circuit)) as never,
-      is_public: isPublic,
-    };
-    const query = circuitId
-      ? supabase.from("circuits").update(payload).eq("id", circuitId).select("id").single()
-      : supabase.from("circuits").insert(payload).select("id").single();
-    const { data, error } = await query;
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      const { id } = await saveCircuit({
+        data: {
+          id: circuitId || undefined,
+          title: title.trim() || "Untitled circuit",
+          description: description.trim() || null,
+          data: circuit,
+          isPublic,
+        }
+      });
+      setBusy(false);
+      onSaved(id);
+      toast.success(circuitId ? "Circuit updated" : "Circuit saved to cloud");
+    } catch (err: any) {
+      setBusy(false);
+      toast.error(err.message || "Failed to save circuit");
     }
-    onSaved(data.id);
-    toast.success(circuitId ? "Circuit updated" : "Circuit saved to cloud");
   }
 
   async function copyLink() {

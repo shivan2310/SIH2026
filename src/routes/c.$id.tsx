@@ -6,7 +6,7 @@ import { CircuitComments } from "@/components/quantum/CircuitComments";
 import { CircuitCanvas } from "@/components/quantum/CircuitCanvas";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { getSharedCircuit } from "@/lib/circuits/actions";
 import { circuitToCode } from "@/lib/quantum/code";
 import { circuitDepth, type QCircuit } from "@/lib/quantum/ir";
 
@@ -47,19 +47,18 @@ function SharedCircuitPage() {
   useEffect(() => {
     let active = true;
     void (async () => {
-      const { data, error } = await supabase
-        .from("circuits")
-        .select("title, description, data, updated_at")
-        .eq("id", id)
-        .eq("is_public", true)
-        .maybeSingle();
-      if (!active) return;
-      if (error || !data) {
+      try {
+        const data = await getSharedCircuit({ data: { id } });
+        if (!active) return;
+        if (!data) {
+          setState("missing");
+          return;
+        }
+        setRow(data as unknown as SharedRow);
+        setState("ready");
+      } catch {
         setState("missing");
-        return;
       }
-      setRow(data as unknown as SharedRow);
-      setState("ready");
     })();
     return () => {
       active = false;

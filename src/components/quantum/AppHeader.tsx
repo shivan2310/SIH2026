@@ -1,5 +1,6 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Atom, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { supabase } from "@/integrations/supabase/client";
+import { signOut } from "@/lib/auth/actions";
 import { useProfile, useSession } from "@/hooks/useSession";
 
 const NAV = [
@@ -27,16 +28,18 @@ export function AppHeader() {
   const { user, loading } = useSession();
   const profile = useProfile(user?.id);
   const navigate = useNavigate();
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   const name = profile?.displayName ?? user?.email ?? "";
   const initials = name.slice(0, 2).toUpperCase();
 
-  async function signOut() {
-    await queryClient.cancelQueries();
-    queryClient.clear();
-    await supabase.auth.signOut();
-    void navigate({ to: "/auth", replace: true });
+  async function handleSignOut() {
+    await signOut();
+    await queryClient.invalidateQueries({ queryKey: ["session"] });
+    void router.invalidate();
+    toast.success("Signed out");
+    void navigate({ to: "/" });
   }
 
   return (
@@ -121,7 +124,7 @@ export function AppHeader() {
                     <Link to="/instructor">Instructor</Link>
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem onClick={() => void signOut()}>
+                <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" /> Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
