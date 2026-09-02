@@ -93,7 +93,7 @@ export const createCohort = createServerFn({ method: "POST" })
   .inputValidator((input: { name: string }) => input)
   .handler(async ({ data: { name }, context }) => {
     const id = crypto.randomUUID();
-    const joinCode = crypto.randomUUID().split("-")[0].toUpperCase().slice(0, 6);
+    const joinCode = (crypto.randomUUID().split("-")[0] ?? "").toUpperCase().slice(0, 6);
     
     db.prepare(
       "INSERT INTO cohorts (id, instructor_id, name, join_code) VALUES (?, ?, ?, ?)"
