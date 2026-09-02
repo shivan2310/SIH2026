@@ -3,13 +3,9 @@ import { AppHeader } from "@/components/quantum/AppHeader";
 import { Button } from "@/components/ui/button";
 import {
   Binary,
-  BookOpen,
-  Bot,
   CircuitBoard,
   GaugeCircle,
-  Layers,
   Orbit,
-  Users,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -60,13 +56,6 @@ const PHASE1 = [
   },
 ];
 
-const ROADMAP = [
-  { icon: Users, title: "Accounts & cloud circuits", phase: "Phase 2" },
-  { icon: Bot, title: "AI tutor, debugging & optimization", phase: "Phase 3" },
-  { icon: BookOpen, title: "Lessons, quizzes & progress", phase: "Phase 4" },
-  { icon: Layers, title: "Qiskit / PennyLane / Cirq backends", phase: "Phase 6" },
-];
-
 function Home() {
   return (
     <div className="min-h-screen">
@@ -112,29 +101,7 @@ function Home() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 pb-24">
-          <h2 className="mb-1 text-lg font-semibold">What comes next</h2>
-          <p className="mb-6 text-sm text-muted-foreground">
-            The circuit lab ships first. The architecture already has room for
-            everything below.
-          </p>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {ROADMAP.map((r) => (
-              <div
-                key={r.title}
-                className="flex items-start gap-3 rounded-lg border border-dashed border-border p-4"
-              >
-                <r.icon className="mt-0.5 h-4 w-4 text-accent" />
-                <div>
-                  <p className="text-sm font-medium">{r.title}</p>
-                  <p className="font-mono text-[0.65rem] uppercase tracking-widest text-muted-foreground">
-                    {r.phase}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+
       </main>
       <footer className="border-t border-border py-8 text-center font-mono text-xs text-muted-foreground">
         QuantumLab · built for a quantum-ready workforce
