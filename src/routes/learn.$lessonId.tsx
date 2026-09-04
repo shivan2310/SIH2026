@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, CheckCircle2, XCircle } from "lucide-react";
 import { AppHeader } from "@/components/quantum/AppHeader";
 import { LessonCircuit } from "@/components/learn/LessonCircuit";
+import { LessonAITutor } from "@/components/learn/LessonAITutor";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/hooks/useSession";
@@ -133,6 +134,8 @@ function LessonPage() {
             <LessonCircuit code={lesson.circuit.code} caption={lesson.circuit.caption} />
           )}
         </article>
+
+        <LessonAITutor lesson={lesson} />
 
         <section className="panel mt-8 p-5">
           <h2 className="mb-4 text-sm font-semibold">Check your understanding</h2>

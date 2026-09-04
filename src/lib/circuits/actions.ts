@@ -3,7 +3,7 @@ import { db } from "../db/client";
 import { requireAuth } from "../auth/server";
 
 export const getCircuit = createServerFn({ method: "GET" })
-  .inputValidator((input: { id: string }) => input)
+  .validator((input: { id: string }) => input)
   .handler(async ({ data: { id } }) => {
     const circuit = db
       .prepare("SELECT title, description, is_public as isPublic, data, updated_at FROM circuits WHERE id = ?")
@@ -20,7 +20,7 @@ export const getCircuit = createServerFn({ method: "GET" })
   });
 
 export const getCircuitComments = createServerFn({ method: "GET" })
-  .inputValidator((input: { circuitId: string }) => input)
+  .validator((input: { circuitId: string }) => input)
   .handler(async ({ data: { circuitId } }) => {
     const comments = db
       .prepare(
@@ -40,7 +40,7 @@ export const getCircuitComments = createServerFn({ method: "GET" })
 
 export const postCircuitComment = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: { circuitId: string; body: string }) => input)
+  .validator((input: { circuitId: string; body: string }) => input)
   .handler(async ({ data, context }) => {
     const id = crypto.randomUUID();
     db.prepare(
@@ -51,7 +51,7 @@ export const postCircuitComment = createServerFn({ method: "POST" })
 
 export const deleteCircuitComment = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: { id: string }) => input)
+  .validator((input: { id: string }) => input)
   .handler(async ({ data, context }) => {
     const info = db.prepare("DELETE FROM circuit_comments WHERE id = ? AND user_id = ?").run(
       data.id,
@@ -64,7 +64,7 @@ export const deleteCircuitComment = createServerFn({ method: "POST" })
 
 export const saveCircuit = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator(
+  .validator(
     (input: {
       id?: string;
       title: string;
@@ -113,7 +113,7 @@ export const getUserCircuits = createServerFn({ method: "GET" })
 
 export const toggleCircuitShare = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: { id: string; isPublic: boolean }) => input)
+  .validator((input: { id: string; isPublic: boolean }) => input)
   .handler(async ({ data, context }) => {
     const info = db.prepare("UPDATE circuits SET is_public = ? WHERE id = ? AND user_id = ?").run(
       data.isPublic ? 1 : 0,
@@ -126,7 +126,7 @@ export const toggleCircuitShare = createServerFn({ method: "POST" })
 
 export const deleteCircuit = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: { id: string }) => input)
+  .validator((input: { id: string }) => input)
   .handler(async ({ data, context }) => {
     const info = db.prepare("DELETE FROM circuits WHERE id = ? AND user_id = ?").run(
       data.id,

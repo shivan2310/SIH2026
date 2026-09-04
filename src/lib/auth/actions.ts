@@ -16,7 +16,7 @@ export const getAuthSession = createServerFn({ method: "GET" }).handler(async ()
 });
 
 export const getUserProfile = createServerFn({ method: "GET" })
-  .inputValidator((input: { userId?: string }) => input)
+  .validator((input: { userId?: string }) => input)
   .handler(async ({ data: { userId } }) => {
     if (!userId) return null;
 
@@ -36,7 +36,7 @@ export const getUserProfile = createServerFn({ method: "GET" })
   });
 
 export const signIn = createServerFn({ method: "POST" })
-  .inputValidator((input: { email: string; password: string }) => input)
+  .validator((input: { email: string; password: string }) => input)
   .handler(async ({ data: { email, password } }) => {
     const user = db.prepare("SELECT id, password_hash FROM users WHERE email = ?").get(email) as {
       id: string;
@@ -53,7 +53,7 @@ export const signIn = createServerFn({ method: "POST" })
   });
 
 export const signUp = createServerFn({ method: "POST" })
-  .inputValidator((input: { email: string; password: string }) => input)
+  .validator((input: { email: string; password: string }) => input)
   .handler(async ({ data: { email, password } }) => {
     try {
       const id = crypto.randomUUID();

@@ -21,7 +21,7 @@ export const getAssignments = createServerFn({ method: "GET" })
 
 export const joinCohort = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: { joinCode: string }) => input)
+  .validator((input: { joinCode: string }) => input)
   .handler(async ({ data, context }) => {
     const cohort = db
       .prepare("SELECT id, name FROM cohorts WHERE join_code = ?")
@@ -53,7 +53,7 @@ export const getInstructorCohorts = createServerFn({ method: "GET" })
 
 export const getInstructorCohortDetails = createServerFn({ method: "GET" })
   .middleware([requireAuth])
-  .inputValidator((input: { cohortId: string }) => input)
+  .validator((input: { cohortId: string }) => input)
   .handler(async ({ data: { cohortId }, context }) => {
     // Verify instructor
     const cohort = db.prepare("SELECT id FROM cohorts WHERE id = ? AND instructor_id = ?").get(cohortId, context.userId);
@@ -90,7 +90,7 @@ export const getInstructorCohortDetails = createServerFn({ method: "GET" })
 
 export const createCohort = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: { name: string }) => input)
+  .validator((input: { name: string }) => input)
   .handler(async ({ data: { name }, context }) => {
     const id = crypto.randomUUID();
     const joinCode = crypto.randomUUID().split("-")[0].toUpperCase().slice(0, 6);
@@ -104,7 +104,7 @@ export const createCohort = createServerFn({ method: "POST" })
 
 export const addAssignment = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: { cohortId: string; itemType: string; itemId: string; title: string }) => input)
+  .validator((input: { cohortId: string; itemType: string; itemId: string; title: string }) => input)
   .handler(async ({ data, context }) => {
     const cohort = db.prepare("SELECT id FROM cohorts WHERE id = ? AND instructor_id = ?").get(data.cohortId, context.userId);
     if (!cohort) throw new Error("Unauthorized");
@@ -118,7 +118,7 @@ export const addAssignment = createServerFn({ method: "POST" })
 
 export const removeAssignment = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: { id: string }) => input)
+  .validator((input: { id: string }) => input)
   .handler(async ({ data, context }) => {
     // Check if the assignment belongs to a cohort owned by the user
     const assignment = db.prepare(`

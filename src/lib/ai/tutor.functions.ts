@@ -51,7 +51,7 @@ Keep answers under ~200 words unless asked for more.`;
 /** Context-aware chat tutor scoped to the circuit currently in the lab. */
 export const tutorChat = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator(
+  .validator(
     (input: {
       messages: Array<{ role: "user" | "assistant"; content: string }>;
       circuitCode: string;
@@ -83,7 +83,7 @@ export interface CircuitAnalysis {
 /** Error detection, redundant-gate and depth optimization suggestions. */
 export const analyzeCircuit = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: { circuitCode: string; goal?: string }) => input)
+  .validator((input: { circuitCode: string; goal?: string }) => input)
   .handler(async ({ data }): Promise<CircuitAnalysis> => {
     const raw = await callGateway([
       {
@@ -119,7 +119,7 @@ optimizations: concrete rewrites that reduce gate count or depth. Empty array if
 /** Natural language -> circuit DSL, ready to load into the lab. */
 export const generateCircuit = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator((input: { prompt: string }) => input)
+  .validator((input: { prompt: string }) => input)
   .handler(async ({ data }) => {
     const raw = await callGateway([
       {
@@ -140,7 +140,7 @@ Use the smallest number of qubits that satisfies the request.`,
 /** Plain-English explanation of the circuit currently in the lab. */
 export const explainCircuit = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator(
+  .validator(
     (input: { circuitCode: string; level: "beginner" | "intermediate" | "advanced" }) =>
       input,
   )
@@ -165,6 +165,30 @@ export const globalChat = createServerFn({ method: "POST" })
     }));
     const reply = await callGateway([
       { role: "system", content: TUTOR_SYSTEM },
+      ...history,
+    ]);
+    return { reply };
+  });
+
+export const lessonChat = createServerFn({ method: "POST" })
+  .middleware([requireAuth])
+  .validator(
+    (input: {
+      messages: Array<{ role: "user" | "assistant"; content: string }>;
+      lessonContext: string;
+    }) => input,
+  )
+  .handler(async ({ data }) => {
+    const history = data.messages.slice(-12).map((m) => ({
+      role: m.role,
+      content: m.content.slice(0, 4000),
+    }));
+    const reply = await callGateway([
+      { role: "system", content: TUTOR_SYSTEM },
+      {
+        role: "system",
+        content: `You are currently helping the learner with the following lesson.\n\nLESSON CONTEXT:\n${data.lessonContext}\n\nBase your explanations strictly on this lesson material.`,
+      },
       ...history,
     ]);
     return { reply };

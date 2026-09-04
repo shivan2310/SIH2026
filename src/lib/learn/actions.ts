@@ -25,7 +25,7 @@ export const getStudentProgress = createServerFn({ method: "GET" })
 
 export const saveLessonProgressAction = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator(
+  .validator(
     (input: {
       lessonId: string;
       completed: boolean;
@@ -48,7 +48,7 @@ export const saveLessonProgressAction = createServerFn({ method: "POST" })
 
 export const saveAttemptAction = createServerFn({ method: "POST" })
   .middleware([requireAuth])
-  .inputValidator(
+  .validator(
     (input: {
       challengeId: string;
       passed: boolean;
