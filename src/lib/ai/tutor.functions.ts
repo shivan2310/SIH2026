@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/auth/server";
 
-const MODEL = process.env["VITE_AI_MODEL"] || "llama3";
+const MODEL = process.env["AI_MODEL"] || "llama3";
 
 interface ChatMessage {
   role: "system" | "user" | "assistant";
@@ -9,7 +9,7 @@ interface ChatMessage {
 }
 
 async function callGateway(messages: ChatMessage[]): Promise<string> {
-  const ollamaUrl = process.env["VITE_OLLAMA_URL"] || "http://localhost:11434";
+  const ollamaUrl = process.env["OLLAMA_URL"] || "http://localhost:11434";
   const endpoint = `${ollamaUrl}/v1/chat/completions`;
   const apiKey = process.env["GEMINI_API_KEY"] || "ollama"; // Local models don't need real keys
 
