@@ -5,7 +5,6 @@ import { ArrowLeft, CheckCircle2, Lightbulb, Play, XCircle } from "lucide-react"
 import { DashboardNavbar as AppHeader } from "@/components/dashboard/DashboardNavbar";
 import { CircuitCanvas } from "@/components/quantum/CircuitCanvas";
 import { CodePanel } from "@/components/quantum/CodePanel";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/hooks/useSession";
 import { saveAttempt } from "@/hooks/useProgress";
@@ -30,7 +29,7 @@ export const Route = createFileRoute("/challenges/$challengeId")({
       };
     }
     const { challenge } = loaderData;
-    const title = `${challenge.title} â€” Quantum challenge | QuantumLab`;
+    const title = `${challenge.title} — Quantum challenge | QuantumLab`;
     return {
       meta: [
         { title },
@@ -49,13 +48,13 @@ export const Route = createFileRoute("/challenges/$challengeId")({
 
 function ChallengeMissing() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#F5F5F5] font-sans text-[#111111]">
       <AppHeader />
       <main className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-lg font-semibold">Challenge unavailable</h1>
-        <Button asChild className="mt-4">
-          <Link to="/challenges">Back to challenges</Link>
-        </Button>
+        <h1 className="text-2xl font-bold">Challenge unavailable</h1>
+        <Link to="/challenges" className="mt-6 inline-block rounded-lg bg-[#F47F45] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#E3692E]">
+          Back to challenges
+        </Link>
       </main>
     </div>
   );
@@ -128,53 +127,57 @@ function ChallengePage() {
   }, [challenge, code, run, user]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#F5F5F5] font-sans text-[#111111]">
       <AppHeader />
       <main className="mx-auto max-w-6xl px-4 py-10">
         <Link
           to="/challenges"
-          className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+          className="mb-6 inline-flex items-center gap-1.5 text-xs font-bold text-[#707070] transition-colors hover:text-[#111111]"
         >
-          <ArrowLeft className="h-3 w-3" /> All challenges
+          <ArrowLeft className="h-4 w-4" /> All challenges
         </Link>
 
-        <header className="mb-6 flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold">{challenge.title}</h1>
-          <Badge variant="secondary" className="font-mono text-[0.65rem]">
+        <header className="mb-8 flex flex-wrap items-center gap-3">
+          <h1 className="text-3xl font-bold tracking-tight text-[#111111]">{challenge.title}</h1>
+          <Badge variant="secondary" className="font-mono text-[0.7rem] bg-white border border-[#E5E7EB] text-[#707070]">
             {challenge.difficulty}
           </Badge>
           {challenge.lessonId && (
-            <Button asChild size="sm" variant="ghost">
-              <Link to="/learn/$lessonId" params={{ lessonId: challenge.lessonId }}>
-                Review the lesson
-              </Link>
-            </Button>
+            <Link
+              to="/learn/$lessonId"
+              params={{ lessonId: challenge.lessonId }}
+              className="rounded-lg border border-[#E5E7EB] bg-white px-4 py-1.5 text-sm font-semibold text-[#111111] transition-colors hover:bg-gray-50 hover:border-[#F47F45]"
+            >
+              Review the lesson
+            </Link>
           )}
         </header>
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <section className="space-y-4">
-            <div className="panel p-5">
-              <h2 className="mb-2 text-sm font-semibold">Brief</h2>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <section className="space-y-6">
+            <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+              <h2 className="mb-3 text-lg font-bold text-[#111111]">Brief</h2>
+              <ul className="space-y-2 text-base font-medium text-[#707070]">
                 {challenge.prompt.map((p) => (
                   <li key={p}>{p}</li>
                 ))}
               </ul>
               {challenge.maxGates !== undefined && (
-                <p className="mt-3 font-mono text-[0.65rem] text-muted-foreground">
-                  gate budget: {challenge.maxGates}
+                <p className="mt-4 font-mono text-sm font-semibold text-[#707070]">
+                  Gate budget: <span className="text-[#111111]">{challenge.maxGates}</span>
                 </p>
               )}
             </div>
 
-            <div className="panel p-4">
-              <h2 className="mb-3 text-sm font-semibold">Your circuit</h2>
-              <CodePanel code={code} errors={errors} onChange={onChange} />
+            <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-lg font-bold text-[#111111]">Your circuit code</h2>
+              <div className="overflow-hidden rounded-xl border border-[#E5E7EB]">
+                <CodePanel code={code} errors={errors} onChange={onChange} />
+              </div>
             </div>
 
             {circuit && (
-              <div className="panel p-4">
+              <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm overflow-x-auto custom-scrollbar">
                 <CircuitCanvas
                   circuit={circuit}
                   selectedId={null}
@@ -188,17 +191,23 @@ function ChallengePage() {
             )}
           </section>
 
-          <aside className="space-y-4">
-            <div className="panel space-y-3 p-4">
-              <Button className="w-full" onClick={() => void submit()}>
+          <aside className="space-y-6">
+            <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm space-y-4">
+              <button
+                onClick={() => void submit()}
+                className="w-full rounded-lg bg-[#F47F45] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#E3692E]"
+              >
                 Submit for grading
-              </Button>
-              <Button className="w-full" variant="outline" onClick={run}>
+              </button>
+              <button
+                onClick={run}
+                className="flex w-full items-center justify-center rounded-lg border border-[#E5E7EB] bg-white px-6 py-2.5 text-sm font-bold text-[#111111] transition-colors hover:bg-gray-50"
+              >
                 <Play className="mr-1.5 h-4 w-4" /> Run only
-              </Button>
+              </button>
               {!user && (
-                <p className="text-xs text-muted-foreground">
-                  <Link to="/auth" className="text-primary underline">
+                <p className="text-xs font-medium text-[#707070] text-center">
+                  <Link to="/auth" className="text-[#F47F45] hover:underline font-bold">
                     Sign in
                   </Link>{" "}
                   to record your solved challenges.
@@ -208,18 +217,20 @@ function ChallengePage() {
 
             {grade && (
               <div
-                className={`panel p-4 ${grade.passed ? "border-primary/60" : "border-destructive/60"}`}
+                className={`rounded-2xl border p-5 shadow-sm ${
+                  grade.passed ? "border-[#20B486] bg-[#20B486]/5" : "border-[#FF6680] bg-[#FF6680]/5"
+                }`}
               >
-                <p className="flex items-start gap-2 text-sm">
+                <p className={`flex items-start gap-2 text-sm font-bold ${grade.passed ? "text-[#20B486]" : "text-[#FF6680]"}`}>
                   {grade.passed ? (
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
                   ) : (
-                    <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+                    <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   )}
                   {grade.message}
                 </p>
                 {grade.detail && (
-                  <p className="mt-2 font-mono text-[0.65rem] text-muted-foreground">
+                  <p className="mt-3 font-mono text-xs font-semibold text-[#707070] bg-white p-3 rounded-lg border border-[#E5E7EB]/50">
                     {grade.detail}
                   </p>
                 )}
@@ -227,20 +238,20 @@ function ChallengePage() {
             )}
 
             {bars.length > 0 && (
-              <div className="panel space-y-1.5 p-4">
-                <h2 className="mb-2 text-sm font-semibold">Outcome probabilities</h2>
+              <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm space-y-4">
+                <h2 className="mb-2 text-sm font-bold text-[#111111]">Outcome probabilities</h2>
                 {bars.map(([label, p]) => (
-                  <div key={label} className="flex items-center gap-2">
-                    <span className="w-16 font-mono text-[0.65rem] text-muted-foreground">
+                  <div key={label} className="flex items-center gap-3">
+                    <span className="w-16 font-mono text-xs font-bold text-[#111111]">
                       |{label}&gt;
                     </span>
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-raised">
+                    <div className="h-3 flex-1 overflow-hidden rounded-full bg-gray-100">
                       <div
-                        className="h-full rounded-full bg-primary"
+                        className="h-full rounded-full bg-[#F47F45]"
                         style={{ width: `${Math.round(p * 100)}%` }}
                       />
                     </div>
-                    <span className="w-12 text-right font-mono text-[0.65rem] text-muted-foreground">
+                    <span className="w-12 text-right font-mono text-xs font-bold text-[#707070]">
                       {(p * 100).toFixed(1)}%
                     </span>
                   </div>
@@ -248,18 +259,16 @@ function ChallengePage() {
               </div>
             )}
 
-            <div className="panel p-4">
-              <Button
-                size="sm"
-                variant="ghost"
+            <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
+              <button
                 onClick={() => setShowHint((s) => !s)}
-                className="w-full justify-start"
+                className="flex w-full items-center justify-start rounded-lg bg-gray-50 px-4 py-2 text-sm font-bold text-[#111111] transition-colors hover:bg-gray-100"
               >
-                <Lightbulb className="mr-1.5 h-4 w-4" />
+                <Lightbulb className="mr-2 h-4 w-4 text-[#F47F45]" />
                 {showHint ? "Hide hint" : "Show hint"}
-              </Button>
+              </button>
               {showHint && (
-                <p className="mt-2 text-xs text-muted-foreground">{challenge.hint}</p>
+                <p className="mt-4 text-sm font-medium text-[#707070] leading-relaxed px-2">{challenge.hint}</p>
               )}
             </div>
           </aside>
