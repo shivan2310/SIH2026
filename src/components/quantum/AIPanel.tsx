@@ -9,6 +9,7 @@ import {
   tutorChat,
   explainCircuit,
 } from "@/lib/ai/tutor.functions";
+import type { SimulationResult } from "@/lib/quantum/simulator";
 
 interface Msg {
   role: "user" | "assistant";
@@ -17,6 +18,7 @@ interface Msg {
 
 interface Props {
   code: string;
+  result?: SimulationResult | null;
   onApplyCode: (code: string) => void;
 }
 
@@ -24,7 +26,7 @@ function errMessage(e: unknown): string {
   return e instanceof Error ? e.message : "The AI request failed.";
 }
 
-export function AIPanel({ code, onApplyCode }: Props) {
+export function AIPanel({ code, result, onApplyCode }: Props) {
   const { user, loading } = useSession();
   
   const chat = useServerFn(tutorChat);
@@ -59,6 +61,16 @@ export function AIPanel({ code, onApplyCode }: Props) {
     );
   }
 
+  function getSimData() {
+    if (!result) return undefined;
+    return {
+      probabilities: Array.from(result.probabilities),
+      counts: result.counts,
+      shots: result.shots,
+      backend: result.backendId || "browser-statevector"
+    };
+  }
+
   async function send(question?: string) {
     const text = (question ?? input).trim();
     if (!text || thinking) return;
@@ -74,7 +86,12 @@ export function AIPanel({ code, onApplyCode }: Props) {
     setThinking(true);
     try {
       const { reply } = await chat({
-        data: { messages: next, circuitCode: code, level: "intermediate" },
+        data: { 
+          messages: next, 
+          circuitCode: code, 
+          level: "intermediate",
+          simulation: getSimData() 
+        },
       });
       setMessages([...next, { role: "assistant", content: reply }]);
     } catch (e) {
@@ -90,7 +107,13 @@ export function AIPanel({ code, onApplyCode }: Props) {
     const next: Msg[] = [...messages, { role: "user", content: "Explain this circuit" }];
     setMessages(next);
     try {
-      const { reply } = await explain({ data: { circuitCode: code, level: "intermediate" } });
+      const { reply } = await explain({ 
+        data: { 
+          circuitCode: code, 
+          level: "intermediate",
+          simulation: getSimData()
+        } 
+      });
       setMessages([...next, { role: "assistant", content: reply }]);
     } catch (e) {
       toast.error(errMessage(e));

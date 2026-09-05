@@ -2,8 +2,9 @@ import { useState } from "react";
 import { ArrowRight, Sparkles, Loader2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { analyzeCircuit, type CircuitAnalysis } from "@/lib/ai/tutor.functions";
+import type { SimulationResult } from "@/lib/quantum/simulator";
 
-export function CircuitInsights({ circuitCode }: { circuitCode: string }) {
+export function CircuitInsights({ circuitCode, result }: { circuitCode: string, result?: SimulationResult | null }) {
   const [analysis, setAnalysis] = useState<CircuitAnalysis | null>(null);
   const [loading, setLoading] = useState(false);
   const analyze = useServerFn(analyzeCircuit);
@@ -11,8 +12,20 @@ export function CircuitInsights({ circuitCode }: { circuitCode: string }) {
   async function runAnalyze() {
     setLoading(true);
     try {
-      const result = await analyze({ data: { circuitCode } });
-      setAnalysis(result);
+      const simData = result ? {
+        probabilities: Array.from(result.probabilities),
+        counts: result.counts,
+        shots: result.shots,
+        backend: result.backendId || "browser-statevector"
+      } : undefined;
+      
+      const res = await analyze({ 
+        data: { 
+          circuitCode, 
+          simulation: simData 
+        } 
+      });
+      setAnalysis(res);
     } catch (e) {
       console.error(e);
     } finally {

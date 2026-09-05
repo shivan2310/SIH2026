@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useSession } from "@/hooks/useSession";
 import { lessonChat } from "@/lib/ai/tutor.functions";
+import { serializeLesson } from "@/lib/ai/context";
 import type { Lesson } from "@/lib/learn/content";
 import { cn } from "@/lib/utils";
 
@@ -36,16 +37,7 @@ export function LessonAITutor({ lesson }: Props) {
     }
   }, [messages, isOpen]);
 
-  const serializeLesson = (l: Lesson) => {
-    const parts = [`Title: ${l.title}`, `Description: ${l.blurb}`, "Body:"];
-    l.body.forEach((b: any) => {
-      if (b.kind === "h") parts.push(`## ${b.text}`);
-      if (b.kind === "p") parts.push(b.text);
-      if (b.kind === "math") parts.push(b.text);
-      if (b.kind === "list") parts.push("- " + b.items.join("\n- "));
-    });
-    return parts.join("\n\n");
-  };
+
 
   if (loading) return null;
 

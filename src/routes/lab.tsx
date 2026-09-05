@@ -203,6 +203,7 @@ function LabPage() {
               <LabRightSidebar
                 code={lab.code}
                 codeErrors={lab.codeErrors}
+                result={lab.result}
                 onCodeChange={lab.onCodeChange}
                 onCopyQiskit={copyQiskit}
                 onDownloadJson={downloadJson}
@@ -224,7 +225,7 @@ function LabPage() {
 
             {/* Circuit Insights */}
             <div className="h-[400px]">
-              <CircuitInsights circuitCode={lab.code} />
+              <CircuitInsights circuitCode={lab.code} result={lab.result} />
             </div>
           </div>
 

@@ -70,38 +70,40 @@ export function GlobalAIChat() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-6 right-6 z-50 font-sans text-[#111111]">
       {/* Chat Bubble Button */}
       {!isOpen && (
-        <Button
+        <button
           onClick={() => setIsOpen(true)}
-          className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-all hover:scale-105"
-          size="icon"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-[#F47F45] text-white shadow-lg transition-all hover:scale-105 hover:bg-[#E3692E]"
         >
           <MessageSquare className="h-6 w-6" />
-        </Button>
+        </button>
       )}
 
       {/* Chat Window */}
       <div
         className={cn(
-          "absolute bottom-0 right-0 w-[350px] sm:w-[400px] h-[500px] max-h-[80vh] flex flex-col bg-surface border border-border rounded-xl shadow-2xl overflow-hidden transition-all duration-200 origin-bottom-right",
+          "absolute bottom-0 right-0 w-[350px] sm:w-[400px] h-[500px] max-h-[80vh] flex flex-col bg-white border border-[#E5E7EB] rounded-2xl shadow-2xl overflow-hidden transition-all duration-200 origin-bottom-right",
           isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0 pointer-events-none"
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border bg-surface-raised">
-          <div className="flex items-center gap-2 font-medium">
-            <Bot className="h-5 w-5 text-primary" />
+        <div className="flex items-center justify-between p-4 border-b border-[#E5E7EB] bg-white">
+          <div className="flex items-center gap-2 font-bold text-[#111111]">
+            <Bot className="h-5 w-5 text-[#F47F45]" />
             AI Tutor
           </div>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(false)}>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-[#707070] transition-colors hover:bg-gray-100 hover:text-[#111111]"
+          >
             <X className="h-4 w-4" />
-          </Button>
+          </button>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-surface/50">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
           {messages.map((msg, i) => (
             <div
               key={i}
@@ -112,18 +114,20 @@ export function GlobalAIChat() {
             >
               <div
                 className={cn(
-                  "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-xs",
-                  msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-surface-raised border border-border"
+                  "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-xs shadow-sm",
+                  msg.role === "user"
+                    ? "bg-[#F47F45] text-white"
+                    : "bg-white border border-[#E5E7EB] text-[#707070]"
                 )}
               >
                 {msg.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
               </div>
               <div
                 className={cn(
-                  "rounded-2xl px-4 py-2 max-w-[75%] text-sm",
+                  "rounded-2xl px-4 py-2.5 max-w-[75%] text-sm font-medium shadow-sm",
                   msg.role === "user"
-                    ? "bg-primary text-primary-foreground rounded-tr-none"
-                    : "bg-surface-raised border border-border rounded-tl-none"
+                    ? "bg-[#F47F45] text-white rounded-tr-none"
+                    : "bg-white border border-[#E5E7EB] text-[#111111] rounded-tl-none"
                 )}
               >
                 {msg.content}
@@ -132,11 +136,11 @@ export function GlobalAIChat() {
           ))}
           {mutation.isPending && (
             <div className="flex gap-3 flex-row">
-              <div className="flex-shrink-0 h-8 w-8 rounded-full bg-surface-raised border border-border flex items-center justify-center">
+              <div className="flex-shrink-0 h-8 w-8 rounded-full bg-white border border-[#E5E7EB] flex items-center justify-center text-[#707070] shadow-sm">
                 <Bot className="h-4 w-4" />
               </div>
-              <div className="rounded-2xl rounded-tl-none bg-surface-raised border border-border px-4 py-3">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              <div className="rounded-2xl rounded-tl-none bg-white border border-[#E5E7EB] px-4 py-3 shadow-sm">
+                <Loader2 className="h-4 w-4 animate-spin text-[#707070]" />
               </div>
             </div>
           )}
@@ -144,24 +148,23 @@ export function GlobalAIChat() {
         </div>
 
         {/* Input */}
-        <div className="p-3 border-t border-border bg-surface">
+        <div className="p-3 border-t border-[#E5E7EB] bg-white">
           <form onSubmit={handleSubmit} className="relative flex items-end gap-2">
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask anything..."
-              className="min-h-[44px] max-h-32 resize-none py-3 pr-10 rounded-xl"
+              className="min-h-[44px] max-h-32 resize-none py-3 pr-10 rounded-xl bg-gray-50 border-[#E5E7EB] text-sm font-medium text-[#111111] focus:bg-white focus:border-[#F47F45]"
               rows={1}
             />
-            <Button
+            <button
               type="submit"
-              size="icon"
               disabled={!input.trim() || mutation.isPending}
-              className="absolute right-2 bottom-2 h-7 w-7 rounded-lg"
+              className="absolute right-2 bottom-2 flex h-8 w-8 items-center justify-center rounded-lg bg-[#F47F45] text-white transition-colors hover:bg-[#E3692E] disabled:opacity-50"
             >
-              <Send className="h-3 w-3" />
-            </Button>
+              <Send className="h-4 w-4" />
+            </button>
           </form>
         </div>
       </div>

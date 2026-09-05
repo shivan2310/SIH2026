@@ -3,16 +3,18 @@ import { AIPanel } from "./AIPanel";
 import { CodePanel } from "./CodePanel";
 import { Copy, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { SimulationResult } from "@/lib/quantum/simulator";
 
 interface Props {
   code: string;
   codeErrors: any[];
+  result: SimulationResult | null;
   onCodeChange: (code: string) => void;
   onCopyQiskit: () => void;
   onDownloadJson: () => void;
 }
 
-export function LabRightSidebar({ code, codeErrors, onCodeChange, onCopyQiskit, onDownloadJson }: Props) {
+export function LabRightSidebar({ code, codeErrors, result, onCodeChange, onCopyQiskit, onDownloadJson }: Props) {
   const [activeTab, setActiveTab] = useState<"ai" | "code">("ai");
 
   return (
@@ -43,7 +45,7 @@ export function LabRightSidebar({ code, codeErrors, onCodeChange, onCopyQiskit, 
 
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
         {activeTab === "ai" ? (
-          <AIPanel code={code} onApplyCode={onCodeChange} />
+          <AIPanel code={code} result={result} onApplyCode={onCodeChange} />
         ) : (
           <div className="flex flex-col h-full">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">

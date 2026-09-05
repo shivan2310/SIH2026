@@ -3,10 +3,6 @@ import { useEffect, useState } from "react";
 import { Atom, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { signIn as localSignIn, signUp as localSignUp } from "@/lib/auth/actions";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSession } from "@/hooks/useSession";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -41,9 +37,10 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [tab, setTab] = useState<"signin" | "signup">("signin");
 
   useEffect(() => {
-    if (!loading && user) void navigate({ to: "/circuits", replace: true });
+    if (!loading && user) void navigate({ to: "/lab", replace: true });
   }, [loading, user, navigate]);
 
   async function signIn(e: React.FormEvent) {
@@ -54,7 +51,7 @@ function AuthPage() {
       await queryClient.invalidateQueries({ queryKey: ["session"] });
       void router.invalidate();
       toast.success("Welcome back");
-      void navigate({ to: "/circuits", replace: true });
+      void navigate({ to: "/lab", replace: true });
     } catch (err: any) {
       toast.error(err.message || "Failed to sign in");
     } finally {
@@ -70,7 +67,7 @@ function AuthPage() {
       await queryClient.invalidateQueries({ queryKey: ["session"] });
       void router.invalidate();
       toast.success("Account created successfully");
-      void navigate({ to: "/circuits", replace: true });
+      void navigate({ to: "/lab", replace: true });
     } catch (err: any) {
       toast.error(err.message || "Failed to sign up");
     } finally {
@@ -79,101 +76,138 @@ function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
-      <Link to="/" className="mb-8 flex items-center gap-2">
-        <Atom className="h-6 w-6 text-primary" />
-        <span className="font-mono text-sm font-bold tracking-[0.2em]">
-          QUANTUM<span className="text-primary">LAB</span>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#F5F5F5] font-sans text-[#111111] px-4 py-12">
+      <Link to="/" className="mb-10 flex items-center gap-2">
+        <Atom className="h-8 w-8 text-[#111111]" />
+        <span className="text-2xl font-bold tracking-tight text-[#111111]">
+          Quantum<span className="text-[#F47F45]">Lab</span>
         </span>
       </Link>
 
-      <div className="panel w-full max-w-md p-6">
-        <h1 className="text-lg font-semibold">Your circuits, everywhere</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+      <div className="w-full max-w-md rounded-3xl border border-[#E5E7EB] bg-white p-8 shadow-sm">
+        <h1 className="text-2xl font-bold tracking-tight text-[#111111]">
+          Your circuits, everywhere
+        </h1>
+        <p className="mt-2 text-sm font-medium text-[#707070]">
           Sign in to save circuits and organize your workspace.
         </p>
 
-        <Tabs defaultValue="signin" className="mt-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="signin">Sign in</TabsTrigger>
-            <TabsTrigger value="signup">Create account</TabsTrigger>
-          </TabsList>
+        <div className="mt-8">
+          <div className="flex w-full rounded-xl bg-gray-100 p-1">
+            <button
+              onClick={() => setTab("signin")}
+              className={`flex-1 rounded-lg py-2 text-sm font-bold transition-all ${
+                tab === "signin"
+                  ? "bg-white text-[#111111] shadow-sm"
+                  : "text-[#707070] hover:text-[#111111]"
+              }`}
+            >
+              Sign in
+            </button>
+            <button
+              onClick={() => setTab("signup")}
+              className={`flex-1 rounded-lg py-2 text-sm font-bold transition-all ${
+                tab === "signup"
+                  ? "bg-white text-[#111111] shadow-sm"
+                  : "text-[#707070] hover:text-[#111111]"
+              }`}
+            >
+              Create account
+            </button>
+          </div>
 
-          <TabsContent value="signin">
-            <form className="space-y-3 pt-4" onSubmit={(e) => void signIn(e)}>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1.5"
-                />
-              </div>
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1.5"
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={busy}>
-                {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Sign in
-              </Button>
-            </form>
-          </TabsContent>
-
-          <TabsContent value="signup">
-            <form className="space-y-3 pt-4" onSubmit={(e) => void signUp(e)}>
-              <div>
-                <Label htmlFor="name">Display name</Label>
-                <Input
-                  id="name"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Ada Lovelace"
-                  className="mt-1.5"
-                />
-              </div>
-              <div>
-                <Label htmlFor="email-up">Email</Label>
-                <Input
-                  id="email-up"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1.5"
-                />
-              </div>
-              <div>
-                <Label htmlFor="password-up">Password</Label>
-                <Input
-                  id="password-up"
-                  type="password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1.5"
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={busy}>
-                {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create account
-              </Button>
-            </form>
-          </TabsContent>
-        </Tabs>
+          <div className="mt-8">
+            {tab === "signin" ? (
+              <form className="space-y-4" onSubmit={(e) => void signIn(e)}>
+                <div className="space-y-1.5">
+                  <label htmlFor="email" className="text-sm font-bold text-[#111111]">
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm font-medium text-[#111111] outline-none transition-colors focus:border-[#F47F45] focus:ring-1 focus:ring-[#F47F45]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="password" className="text-sm font-bold text-[#111111]">
+                    Password
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm font-medium text-[#111111] outline-none transition-colors focus:border-[#F47F45] focus:ring-1 focus:ring-[#F47F45]"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={busy}
+                  className="mt-2 flex w-full items-center justify-center rounded-lg bg-[#F47F45] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#E3692E] disabled:opacity-70"
+                >
+                  {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Sign in
+                </button>
+              </form>
+            ) : (
+              <form className="space-y-4" onSubmit={(e) => void signUp(e)}>
+                <div className="space-y-1.5">
+                  <label htmlFor="name" className="text-sm font-bold text-[#111111]">
+                    Display name
+                  </label>
+                  <input
+                    id="name"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="Ada Lovelace"
+                    className="w-full rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm font-medium text-[#111111] outline-none transition-colors focus:border-[#F47F45] focus:ring-1 focus:ring-[#F47F45]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="email-up" className="text-sm font-bold text-[#111111]">
+                    Email
+                  </label>
+                  <input
+                    id="email-up"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm font-medium text-[#111111] outline-none transition-colors focus:border-[#F47F45] focus:ring-1 focus:ring-[#F47F45]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="password-up" className="text-sm font-bold text-[#111111]">
+                    Password
+                  </label>
+                  <input
+                    id="password-up"
+                    type="password"
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full rounded-lg border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm font-medium text-[#111111] outline-none transition-colors focus:border-[#F47F45] focus:ring-1 focus:ring-[#F47F45]"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={busy}
+                  className="mt-2 flex w-full items-center justify-center rounded-lg bg-[#F47F45] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#E3692E] disabled:opacity-70"
+                >
+                  {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Create account
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-
