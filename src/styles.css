@@ -173,3 +173,18 @@
   );
   background-size: 24px 24px;
 }
+
+@keyframes slideInFromRight {
+  0% {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@utility animate-slide-in {
+  animation: slideInFromRight 0.3s ease-out forwards;
+}

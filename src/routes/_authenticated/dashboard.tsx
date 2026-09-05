@@ -1,52 +1,34 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Flame, GraduationCap, Trophy, Sparkles, Loader2 } from "lucide-react";
-import { AppHeader } from "@/components/quantum/AppHeader";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { useSession } from "@/hooks/useSession";
 import { useProgress } from "@/hooks/useProgress";
-import { getAssignments, joinCohort } from "@/lib/cohorts/actions";
-import { LESSONS, TRACKS, lessonsOfTrack } from "@/lib/learn/content";
-import { CHALLENGES } from "@/lib/learn/challenges";
+import { getAssignments } from "@/lib/cohorts/actions";
+import { LESSONS, TRACKS, lessonsOfTrack, type Track } from "@/lib/learn/content";
+// New Dashboard Components
+import { DashboardNavbar } from "@/components/dashboard/DashboardNavbar";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { OverallProgress } from "@/components/dashboard/OverallProgress";
+import { ContinueLesson } from "@/components/dashboard/ContinueLesson";
+import { CalendarStudyTime } from "@/components/dashboard/CalendarStudyTime";
+import { UpcomingSchedule, ScheduleItem } from "@/components/dashboard/UpcomingSchedule";
+import { CourseProgress, CourseData } from "@/components/dashboard/CourseProgress";
+import { Mastery, MasteryItem } from "@/components/dashboard/Mastery";
+import { NextMilestone } from "@/components/dashboard/NextMilestone";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Learner dashboard — Progress & next steps | QuantumLab" },
-      {
-        name: "description",
-        content:
-          "Track lesson mastery, solved challenges, your streak and a recommended next step in your quantum learning path.",
-      },
-      { property: "og:title", content: "Learner dashboard | QuantumLab" },
-      {
-        property: "og:description",
-        content: "Your quantum learning progress, mastery per topic and next recommended lesson.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { title: "Learner dashboard | QuantumLab" },
     ],
   }),
   component: DashboardPage,
 });
 
-interface AssignmentRow {
-  id: string;
-  title: string;
-  item_type: string;
-  item_id: string;
-  due_at: string | null;
-  cohort_id: string;
-}
-
 function DashboardPage() {
   const { user } = useSession();
   const progress = useProgress(user?.id);
-  const [assignments, setAssignments] = useState<AssignmentRow[]>([]);
-  const [joinCode, setJoinCode] = useState("");
-  const [joining, setJoining] = useState(false);
-  const [joinMsg, setJoinMsg] = useState<string | null>(null);
+  const [assignments, setAssignments] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -58,215 +40,170 @@ function DashboardPage() {
         console.error(err);
       }
     })();
-  }, [user, joinMsg]);
-
-  async function join() {
-    if (!user || joinCode.trim().length === 0) return;
-    setJoining(true);
-    setJoinMsg(null);
-    try {
-      const { name } = await joinCohort({ data: { joinCode: joinCode.trim().toUpperCase() } });
-      setJoinMsg(`Joined ${name}.`);
-      setJoinCode("");
-    } catch (err: any) {
-      setJoinMsg(err.message || "Failed to join class.");
-    } finally {
-      setJoining(false);
-    }
-  }
+  }, [user]);
 
   const done = new Set(
     progress.lessons.filter((l) => l.completed).map((l) => l.lesson_id),
   );
   const nextLesson = LESSONS.find((l) => !done.has(l.id));
-  const nextChallenge = CHALLENGES.find((c) => !progress.solvedChallenges.has(c.id));
+  const nextLessonTrack = nextLesson ? TRACKS.find(t => t.id === nextLesson.trackId) : null;
+  const courseTitle = nextLessonTrack?.title ?? "Quantum Fundamentals";
+  
+  // Lesson progress - mock 0 since we don't have partial lesson progress in DB
+  const lessonProgressPercent = 0; 
+
+  // Course Progress & Mastery Data
+  const courseData: CourseData[] = [];
+  const masteryData: MasteryItem[] = [];
+  
+  let activeTrack: Track | null = null;
+  let nextTrack: Track | null = null;
+
+  TRACKS.forEach((t, idx) => {
+    const items = lessonsOfTrack(t.id);
+    const complete = items.filter((l) => done.has(l.id)).length;
+    const pct = items.length > 0 ? Math.round((complete / items.length) * 100) : 0;
+    
+    let status = "Not Started";
+    if (pct === 100) status = "Completed";
+    else if (pct > 0) status = "In Progress";
+    
+    if (idx > 0 && (courseData[idx - 1]?.progress ?? 0) < 100 && pct === 0) {
+      status = "Locked";
+    }
+
+    courseData.push({
+      id: t.id,
+      title: t.title,
+      completed: complete,
+      total: items.length,
+      progress: pct,
+      status
+    });
+
+    masteryData.push({
+      topic: t.title,
+      progress: pct
+    });
+
+    if (status === "In Progress" || (status === "Not Started" && !activeTrack)) {
+      if (!activeTrack) activeTrack = t;
+    }
+  });
+
+  if (activeTrack) {
+    const activeIndex = TRACKS.findIndex(t => t.id === activeTrack?.id);
+    if (activeIndex >= 0 && activeIndex < TRACKS.length - 1) {
+      nextTrack = TRACKS[activeIndex + 1] ?? null;
+    }
+  }
+
+  // Active Dates for Calendar
+  const activeDates = new Set<string>();
+  progress.lessons.forEach(l => {
+    if (l.updated_at) activeDates.add(new Date(l.updated_at).toISOString().slice(0, 10));
+  });
+  progress.attempts.forEach(a => {
+    if (a.created_at) activeDates.add(new Date(a.created_at).toISOString().slice(0, 10));
+  });
+
+  // Upcoming Schedule from assignments
+  const scheduleData: ScheduleItem[] = assignments.map(a => {
+    let dateStr = "";
+    let timeStr = "";
+    if (a.due_at) {
+      const d = new Date(a.due_at);
+      dateStr = `${d.getDate()} ${d.toLocaleString('default', { month: 'short' })}`;
+      timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    return {
+      id: a.id,
+      date: dateStr,
+      time: timeStr,
+      title: a.title,
+      itemType: a.item_type,
+      itemId: a.item_id
+    };
+  });
+
+  let milestoneTrack = activeTrack || TRACKS[0] || null;
+  let milestoneCourse = courseData.find(c => c.id === milestoneTrack?.id);
+  let lessonsAway = milestoneCourse ? milestoneCourse.total - milestoneCourse.completed : 0;
+  let milestoneMessage = nextTrack 
+    ? `You're ${lessonsAway} lessons away from unlocking ${nextTrack.title}!` 
+    : `You're ${lessonsAway} lessons away from completing the curriculum!`;
+    
+  if (lessonsAway === 0) {
+    milestoneMessage = "You've completed everything! Great job!";
+  }
 
   return (
-    <div className="min-h-screen">
-      <AppHeader />
-      <main className="mx-auto max-w-5xl px-4 py-10">
-        <h1 className="text-2xl font-semibold">Your progress</h1>
+    <div className="min-h-screen bg-[#F5F5F5] text-[#111111] font-sans">
+      <DashboardNavbar />
+      
+      <main className="mx-auto max-w-[1500px] px-4 py-8 md:px-8 md:py-12">
+        <DashboardHeader />
 
         {progress.loading ? (
-          <p className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Loading…
-          </p>
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-[#F47F45]" />
+          </div>
         ) : (
-          <>
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              <Stat
-                icon={<GraduationCap className="h-4 w-4 text-primary" />}
-                label="Lessons complete"
-                value={`${progress.completedLessons}/${progress.totalLessons}`}
-              />
-              <Stat
-                icon={<Trophy className="h-4 w-4 text-primary" />}
-                label="Challenges solved"
-                value={`${progress.solvedChallenges.size}/${progress.totalChallenges}`}
-              />
-              <Stat
-                icon={<Flame className="h-4 w-4 text-primary" />}
-                label="Day streak"
-                value={`${progress.streak}`}
-              />
+          <div className="flex flex-col gap-6">
+            
+            {/* TOP DASHBOARD ROW */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-1">
+                <OverallProgress 
+                  completedLessons={progress.completedLessons}
+                  totalLessons={progress.totalLessons}
+                  solvedChallenges={progress.solvedChallenges.size}
+                  totalChallenges={progress.totalChallenges}
+                  conceptsMastered={done.size}
+                  streak={progress.streak || 0}
+                />
+              </div>
+              <div className="lg:col-span-1">
+                <ContinueLesson 
+                  lessonId={nextLesson?.id ?? null}
+                  lessonTitle={nextLesson?.title ?? ""}
+                  courseTitle={courseTitle}
+                  progressPercent={lessonProgressPercent}
+                />
+              </div>
+              <div className="lg:col-span-1">
+                <CalendarStudyTime activeDates={activeDates} />
+              </div>
             </div>
 
-            <section className="mt-8">
-              <h2 className="mb-3 text-sm font-semibold">Mastery by topic</h2>
-              <div className="space-y-3">
-                {TRACKS.map((t) => {
-                  const items = lessonsOfTrack(t.id);
-                  const complete = items.filter((l) => done.has(l.id)).length;
-                  const pct = Math.round((complete / items.length) * 100);
-                  return (
-                    <div key={t.id} className="panel p-4">
-                      <div className="mb-2 flex items-center gap-2">
-                        <p className="text-sm font-medium">{t.title}</p>
-                        <Badge variant="secondary" className="ml-auto font-mono text-[0.6rem]">
-                          {pct}%
-                        </Badge>
-                      </div>
-                      <div className="h-2 overflow-hidden rounded-full bg-surface-raised">
-                        <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
-                      </div>
-                    </div>
-                  );
-                })}
+            {/* SECOND ROW */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-1">
+                <UpcomingSchedule schedule={scheduleData} />
               </div>
-            </section>
-
-            <section className="mt-8 grid gap-3 sm:grid-cols-2">
-              <div className="panel p-4">
-                <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
-                  <Sparkles className="h-4 w-4 text-primary" /> Recommended next
-                </h2>
-                {nextLesson ? (
-                  <>
-                    <p className="text-sm">{nextLesson.title}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{nextLesson.blurb}</p>
-                    <Button asChild size="sm" className="mt-3">
-                      <Link to="/learn/$lessonId" params={{ lessonId: nextLesson.id }}>
-                        Start lesson
-                      </Link>
-                    </Button>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Every lesson is complete — nice work.
-                  </p>
-                )}
+              <div className="lg:col-span-2">
+                <CourseProgress courses={courseData} />
               </div>
+            </div>
 
-              <div className="panel p-4">
-                <h2 className="mb-2 text-sm font-semibold">Next challenge</h2>
-                {nextChallenge ? (
-                  <>
-                    <p className="text-sm">{nextChallenge.title}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{nextChallenge.blurb}</p>
-                    <Button asChild size="sm" variant="outline" className="mt-3">
-                      <Link
-                        to="/challenges/$challengeId"
-                        params={{ challengeId: nextChallenge.id }}
-                      >
-                        Attempt it
-                      </Link>
-                    </Button>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted-foreground">All challenges solved.</p>
-                )}
+            {/* THIRD ROW */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <Mastery masteryData={masteryData} />
               </div>
-            </section>
-
-            <section className="mt-8">
-              <h2 className="mb-3 text-sm font-semibold">Class assignments</h2>
-              <div className="panel p-4">
-                <div className="flex flex-wrap items-end gap-2">
-                  <div className="flex-1">
-                    <label
-                      htmlFor="joincode"
-                      className="mb-1.5 block text-xs text-muted-foreground"
-                    >
-                      Join a class with a code
-                    </label>
-                    <input
-                      id="joincode"
-                      value={joinCode}
-                      onChange={(e) => setJoinCode(e.target.value)}
-                      placeholder="ABC123"
-                      className="w-full rounded-md border border-border bg-surface-raised px-3 py-2 font-mono text-sm uppercase outline-none focus:border-primary"
-                    />
-                  </div>
-                  <Button onClick={() => void join()} disabled={joining}>
-                    Join
-                  </Button>
-                </div>
-                {joinMsg && (
-                  <p className="mt-2 text-xs text-muted-foreground">{joinMsg}</p>
-                )}
-
-                {assignments.length > 0 ? (
-                  <ul className="mt-4 space-y-2">
-                    {assignments.map((a) => (
-                      <li
-                        key={a.id}
-                        className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-surface-raised p-3"
-                      >
-                        <span className="text-sm">{a.title}</span>
-                        <Badge variant="secondary" className="font-mono text-[0.6rem]">
-                          {a.item_type}
-                        </Badge>
-                        {a.due_at && (
-                          <span className="font-mono text-[0.65rem] text-muted-foreground">
-                            due {new Date(a.due_at).toLocaleDateString()}
-                          </span>
-                        )}
-                        <Button asChild size="sm" variant="ghost" className="ml-auto">
-                          {a.item_type === "lesson" ? (
-                            <Link to="/learn/$lessonId" params={{ lessonId: a.item_id }}>
-                              Open
-                            </Link>
-                          ) : (
-                            <Link
-                              to="/challenges/$challengeId"
-                              params={{ challengeId: a.item_id }}
-                            >
-                              Open
-                            </Link>
-                          )}
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mt-4 text-xs text-muted-foreground">
-                    No assignments yet.
-                  </p>
-                )}
+              <div className="lg:col-span-1">
+                <NextMilestone 
+                  trackTitle={milestoneTrack?.title || "Quantum"}
+                  completedLessons={milestoneCourse?.completed || 0}
+                  totalLessons={milestoneCourse?.total || 0}
+                  message={milestoneMessage}
+                />
               </div>
-            </section>
-          </>
+            </div>
+
+          </div>
         )}
       </main>
-    </div>
-  );
-}
-
-function Stat({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="panel p-4">
-      <p className="flex items-center gap-2 text-xs text-muted-foreground">
-        {icon} {label}
-      </p>
-      <p className="mt-2 font-mono text-2xl">{value}</p>
     </div>
   );
 }

@@ -1,5 +1,6 @@
-import { Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Atom, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,18 +16,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { signOut } from "@/lib/auth/actions";
 import { useProfile, useSession } from "@/hooks/useSession";
 
-const NAV = [
-  { to: "/", label: "Overview" },
-  { to: "/lab", label: "Circuit Lab" },
-  { to: "/learn", label: "Learn" },
-  { to: "/challenges", label: "Challenges" },
-  { to: "/backends", label: "Backends" },
-] as const;
+
 
 
 export function AppHeader() {
   const { user, loading } = useSession();
   const profile = useProfile(user?.id);
+  
+  const dynamicNav = [
+    user ? { to: "/dashboard", label: "Dashboard" } : { to: "/", label: "Overview" },
+    { to: "/lab", label: "Circuit Lab" },
+    { to: "/learn", label: "Learn" },
+    { to: "/challenges", label: "Challenges" },
+    { to: "/backends", label: "Backends" },
+    ...(user ? [{ to: "/circuits", label: "My circuits" }] : []),
+  ];
   const navigate = useNavigate();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -51,36 +55,29 @@ export function AppHeader() {
             QUANTUM<span className="text-primary">LAB</span>
           </span>
         </Link>
-        <nav className="flex items-center gap-1">
-          {NAV.map((item) => (
+        <nav className="relative flex items-center gap-1">
+          {dynamicNav.map((item) => (
             <Link
               key={item.to}
               to={item.to}
               activeOptions={{ exact: item.to === "/" }}
-              activeProps={{ className: "bg-secondary text-foreground" }}
-              className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              activeProps={{ className: "text-foreground" }}
+              className="relative rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
-              {item.label}
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <motion.div
+                      layoutId="nav-indicator"
+                      className="absolute inset-0 rounded-md bg-secondary"
+                      transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
+                    />
+                  )}
+                  <span className="relative z-10">{item.label}</span>
+                </>
+              )}
             </Link>
           ))}
-          {user && (
-            <Link
-              to="/dashboard"
-              activeProps={{ className: "bg-secondary text-foreground" }}
-              className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Dashboard
-            </Link>
-          )}
-          {user && (
-            <Link
-              to="/circuits"
-              activeProps={{ className: "bg-secondary text-foreground" }}
-              className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              My circuits
-            </Link>
-          )}
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
