@@ -50,10 +50,10 @@ export function BlochSphere({
         <line x1={cx} y1={cy - r} x2={cx} y2={cy + r} stroke="#E5E7EB" />
         <line x1={cx - r} y1={cy} x2={cx + r} y2={cy} stroke="#E5E7EB" />
         <text x={cx + 3} y={cy - r + 2} fill="#707070" fontSize="9" fontWeight="bold">
-          |0>
+          |0&gt;
         </text>
         <text x={cx + 3} y={cy + r - 1} fill="#707070" fontSize="9" fontWeight="bold">
-          |1>
+          |1&gt;
         </text>
         <line
           x1={cx}

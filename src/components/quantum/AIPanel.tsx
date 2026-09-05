@@ -10,6 +10,7 @@ import {
   explainCircuit,
 } from "@/lib/ai/tutor.functions";
 import type { SimulationResult } from "@/lib/quantum/simulator";
+import { MarkdownRenderer } from "./MarkdownRenderer";
 
 interface Msg {
   role: "user" | "assistant";
@@ -154,11 +155,15 @@ export function AIPanel({ code, result, onApplyCode }: Props) {
               <div
                 className={`max-w-[90%] rounded-2xl px-4 py-3 text-sm ${
                   m.role === "user"
-                    ? "bg-[#F47F45] text-white"
-                    : "bg-gray-50 text-[#111111] border border-[#E5E7EB]"
+                    ? "bg-[#F47F45] text-white rounded-tr-none"
+                    : "bg-white border border-[#E5E7EB] text-[#111111] rounded-tl-none"
                 }`}
               >
-                <div className="whitespace-pre-wrap leading-relaxed">{m.content}</div>
+                {m.role === "user" ? (
+                  m.content
+                ) : (
+                  <MarkdownRenderer content={m.content} />
+                )}
               </div>
             </div>
           ))}

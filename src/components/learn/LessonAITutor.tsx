@@ -10,6 +10,7 @@ import { lessonChat } from "@/lib/ai/tutor.functions";
 import { serializeLesson } from "@/lib/ai/context";
 import type { Lesson } from "@/lib/learn/content";
 import { cn } from "@/lib/utils";
+import { MarkdownRenderer } from "../quantum/MarkdownRenderer";
 
 interface Msg {
   role: "user" | "assistant";
@@ -127,13 +128,17 @@ export function LessonAITutor({ lesson }: Props) {
                 </div>
                 <div
                   className={cn(
-                    "rounded-2xl px-4 py-3 max-w-[85%] text-sm font-medium whitespace-pre-wrap leading-relaxed shadow-sm",
+                    "rounded-2xl px-4 py-3 max-w-[85%] text-sm font-medium leading-relaxed shadow-sm",
                     m.role === "user"
-                      ? "bg-[#F47F45] text-white rounded-tr-none"
-                      : "bg-gray-100 border border-[#E5E7EB] text-[#111111] rounded-tl-none"
+                      ? "bg-[#F47F45] text-white rounded-tr-none whitespace-pre-wrap"
+                      : "bg-gray-100 border border-[#E5E7EB] text-[#111111] rounded-tl-none w-full"
                   )}
                 >
-                  {m.content}
+                  {m.role === "user" ? (
+                    m.content
+                  ) : (
+                    <MarkdownRenderer content={m.content} />
+                  )}
                 </div>
               </div>
             ))}

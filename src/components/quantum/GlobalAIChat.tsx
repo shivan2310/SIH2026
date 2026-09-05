@@ -6,6 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import { globalChat } from "@/lib/ai/tutor.functions";
 import { useSession } from "@/hooks/useSession";
 import { cn } from "@/lib/utils";
+import { MarkdownRenderer } from "./MarkdownRenderer";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -127,10 +128,14 @@ export function GlobalAIChat() {
                   "rounded-2xl px-4 py-2.5 max-w-[75%] text-sm font-medium shadow-sm",
                   msg.role === "user"
                     ? "bg-[#F47F45] text-white rounded-tr-none"
-                    : "bg-white border border-[#E5E7EB] text-[#111111] rounded-tl-none"
+                    : "bg-white border border-[#E5E7EB] text-[#111111] rounded-tl-none w-full"
                 )}
               >
-                {msg.content}
+                {msg.role === "user" ? (
+                  msg.content
+                ) : (
+                  <MarkdownRenderer content={msg.content} />
+                )}
               </div>
             </div>
           ))}

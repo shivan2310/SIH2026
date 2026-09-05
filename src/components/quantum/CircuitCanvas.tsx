@@ -79,7 +79,7 @@ export function CircuitCanvas({
               style={{ top: q * ROW_H + 24, left: 0, width: "100%", minWidth: width, height: ROW_H }}
             >
               <span className="w-[68px] shrink-0 pl-4 font-mono text-xs font-bold text-[#111111]">
-                q{q} <span className="text-[#707070] font-medium">|0></span>
+                q{q} <span className="text-[#707070] font-medium">|0&gt;</span>
               </span>
               <span
                 className="h-[2px] flex-1 bg-[#E5E7EB]"
