@@ -20,7 +20,7 @@ export function LabSidebar() {
         <Link to="/" className="flex items-center gap-2 mb-1">
           <Atom className="h-6 w-6 text-[#111111]" />
           <span className="font-sans text-xl font-bold tracking-tight text-[#111111]">
-            Quantum<span className="text-[#F47F45]">Lab</span>
+            Quantum<span className="text-[#111111]">Lab</span>
           </span>
         </Link>
         <span className="text-xs font-medium text-[#707070]">Explore. Build. Understand.</span>
