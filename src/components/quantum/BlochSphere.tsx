@@ -1,6 +1,6 @@
 import { blochVector, type StateVector } from "@/lib/quantum/simulator";
 
-/** Lightweight SVG Bloch sphere — no 3D dependency. */
+/** Lightweight SVG Bloch sphere â€” no 3D dependency. */
 export function BlochSphere({
   state,
   qubit,
@@ -28,8 +28,8 @@ export function BlochSphere({
           cx={cx}
           cy={cy}
           r={r}
-          fill="var(--color-surface-raised)"
-          stroke="var(--color-border)"
+          fill="#F9FAFB"
+          stroke="#E5E7EB"
         />
         <ellipse
           cx={cx}
@@ -37,7 +37,7 @@ export function BlochSphere({
           rx={r}
           ry={r * 0.32}
           fill="none"
-          stroke="var(--color-grid)"
+          stroke="#E5E7EB"
         />
         <ellipse
           cx={cx}
@@ -45,35 +45,35 @@ export function BlochSphere({
           rx={r * 0.32}
           ry={r}
           fill="none"
-          stroke="var(--color-grid)"
+          stroke="#E5E7EB"
         />
-        <line x1={cx} y1={cy - r} x2={cx} y2={cy + r} stroke="var(--color-grid)" />
-        <line x1={cx - r} y1={cy} x2={cx + r} y2={cy} stroke="var(--color-grid)" />
-        <text x={cx + 3} y={cy - r + 2} className="fill-muted-foreground" fontSize="9">
-          |0⟩
+        <line x1={cx} y1={cy - r} x2={cx} y2={cy + r} stroke="#E5E7EB" />
+        <line x1={cx - r} y1={cy} x2={cx + r} y2={cy} stroke="#E5E7EB" />
+        <text x={cx + 3} y={cy - r + 2} fill="#707070" fontSize="9" fontWeight="bold">
+          |0âŸ©
         </text>
-        <text x={cx + 3} y={cy + r - 1} className="fill-muted-foreground" fontSize="9">
-          |1⟩
+        <text x={cx + 3} y={cy + r - 1} fill="#707070" fontSize="9" fontWeight="bold">
+          |1âŸ©
         </text>
         <line
           x1={cx}
           y1={cy}
           x2={px}
           y2={py}
-          stroke="var(--color-signal)"
+          stroke="#F47F45"
           strokeWidth={2.5}
           strokeLinecap="round"
           opacity={mixed ? 0.6 : 1}
         />
-        <circle cx={px} cy={py} r={4.5} fill="var(--color-signal)" opacity={mixed ? 0.6 : 1} />
+        <circle cx={px} cy={py} r={4.5} fill="#F47F45" opacity={mixed ? 0.6 : 1} />
       </svg>
-      <div className="text-center">
-        <p className="font-mono text-xs text-foreground">q[{qubit}]</p>
-        <p className="font-mono text-[0.6rem] text-muted-foreground">
-          x {x.toFixed(2)} · y {y.toFixed(2)} · z {z.toFixed(2)}
+      <div className="text-center mt-2">
+        <p className="font-mono text-xs font-bold text-[#111111]">q[{qubit}]</p>
+        <p className="font-mono text-[0.6rem] font-medium text-[#707070] mt-0.5">
+          x {x.toFixed(2)} Â· y {y.toFixed(2)} Â· z {z.toFixed(2)}
         </p>
         {mixed && (
-          <p className="font-mono text-[0.6rem]" style={{ color: "var(--color-entangle)" }}>
+          <p className="font-mono text-[0.65rem] font-bold mt-1 text-[#FF6680]">
             entangled (r={purity.toFixed(2)})
           </p>
         )}

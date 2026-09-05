@@ -10,7 +10,7 @@ import {
   Share2,
   Trash2,
 } from "lucide-react";
-import { AppHeader } from "@/components/quantum/AppHeader";
+import { DashboardNavbar as AppHeader } from "@/components/dashboard/DashboardNavbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -20,7 +20,7 @@ import { getUserCircuits, toggleCircuitShare, deleteCircuit } from "@/lib/circui
 export const Route = createFileRoute("/_authenticated/circuits")({
   head: () => ({
     meta: [
-      { title: "My circuits — Cloud workspace | QuantumLab" },
+      { title: "My circuits â€” Cloud workspace | QuantumLab" },
       {
         name: "description",
         content:
@@ -121,14 +121,14 @@ function CircuitsPage() {
 
         {rows === null && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Loading your workspace…
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading your workspaceâ€¦
           </div>
         )}
 
         {rows?.length === 0 && (
           <div className="panel p-10 text-center">
             <p className="text-sm text-muted-foreground">
-              No saved circuits yet. Build one in the lab and hit “Save to cloud”.
+              No saved circuits yet. Build one in the lab and hit â€œSave to cloudâ€.
             </p>
             <Button asChild className="mt-4">
               <Link to="/lab">Open the Circuit Lab</Link>
@@ -151,7 +151,7 @@ function CircuitsPage() {
                     {row.description || "No description"}
                   </p>
                   <Badge variant="secondary" className="mt-2 font-mono text-[0.65rem]">
-                    {c?.numQubits ?? 0} qubits · depth {c ? circuitDepth(c) : 0} ·{" "}
+                    {c?.numQubits ?? 0} qubits Â· depth {c ? circuitDepth(c) : 0} Â·{" "}
                     {new Date(row.updated_at).toLocaleDateString()}
                   </Badge>
                 </button>

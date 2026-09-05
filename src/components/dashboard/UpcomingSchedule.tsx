@@ -12,7 +12,7 @@ export interface ScheduleItem {
 
 export function UpcomingSchedule({ schedule }: { schedule: ScheduleItem[] }) {
   const getColor = (index: number) => {
-    const colors = ["bg-[#20B486]", "bg-[#9B6CFF]", "bg-[#F89864]", "bg-[#FF6680]"];
+    const colors = ["bg-[#20B486]", "bg-[#F47F45]", "bg-[#F89864]", "bg-[#FF6680]"];
     return colors[index % colors.length];
   };
 

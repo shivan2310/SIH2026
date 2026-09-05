@@ -28,7 +28,7 @@ export function OverallProgress({
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className="relative flex flex-col justify-between rounded-2xl border border-[#E7E7E7] bg-white p-6 shadow-sm">
+    <div className="relative flex h-full flex-col justify-between rounded-2xl border border-[#E7E7E7] bg-white p-6 shadow-sm">
       {/* Top Section */}
       <div className="flex items-start justify-between">
         <h2 className="text-lg font-bold text-[#111111]">Overall Progress</h2>

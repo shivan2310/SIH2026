@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { AppHeader } from "@/components/quantum/AppHeader";
+import { DashboardNavbar as AppHeader } from "@/components/dashboard/DashboardNavbar";
 import { CircuitComments } from "@/components/quantum/CircuitComments";
 import { CircuitCanvas } from "@/components/quantum/CircuitCanvas";
 import { Badge } from "@/components/ui/badge";
@@ -71,7 +71,7 @@ function SharedCircuitPage() {
       <main className="mx-auto max-w-4xl px-4 py-10">
         {state === "loading" && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Loading circuit…
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading circuitâ€¦
           </div>
         )}
 
@@ -95,7 +95,7 @@ function SharedCircuitPage() {
                 <p className="mt-1 text-sm text-muted-foreground">{row.description}</p>
               )}
               <Badge variant="secondary" className="mt-3 font-mono text-[0.65rem]">
-                {row.data.numQubits} qubits · depth {circuitDepth(row.data)} ·{" "}
+                {row.data.numQubits} qubits Â· depth {circuitDepth(row.data)} Â·{" "}
                 {row.data.gates.length} gates
               </Badge>
             </div>

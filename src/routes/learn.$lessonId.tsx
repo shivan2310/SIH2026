@@ -2,10 +2,9 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, CheckCircle2, XCircle } from "lucide-react";
-import { AppHeader } from "@/components/quantum/AppHeader";
+import { DashboardNavbar as AppHeader } from "@/components/dashboard/DashboardNavbar";
 import { LessonCircuit } from "@/components/learn/LessonCircuit";
 import { LessonAITutor } from "@/components/learn/LessonAITutor";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/hooks/useSession";
 import { saveLessonProgress, useProgress } from "@/hooks/useProgress";
@@ -46,16 +45,16 @@ export const Route = createFileRoute("/learn/$lessonId")({
 
 function LessonMissing() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#F5F5F5] font-sans text-[#111111]">
       <AppHeader />
       <main className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <h1 className="text-lg font-semibold">Lesson unavailable</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <h1 className="text-2xl font-bold">Lesson unavailable</h1>
+        <p className="mt-2 text-sm font-medium text-[#707070]">
           That lesson doesn't exist yet.
         </p>
-        <Button asChild className="mt-4">
-          <Link to="/learn">Back to the curriculum</Link>
-        </Button>
+        <Link to="/learn" className="mt-6 inline-block rounded-lg bg-[#F47F45] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#E3692E]">
+          Back to the curriculum
+        </Link>
       </main>
     </div>
   );
@@ -105,122 +104,139 @@ function LessonPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#F5F5F5] font-sans text-[#111111]">
       <AppHeader />
       <main className="mx-auto max-w-3xl px-4 py-10">
         <Link
           to="/learn"
-          className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+          className="mb-6 inline-flex items-center gap-1.5 text-xs font-bold text-[#707070] transition-colors hover:text-[#111111]"
         >
-          <ArrowLeft className="h-3 w-3" /> {track?.title ?? "Curriculum"}
+          <ArrowLeft className="h-4 w-4" /> {track?.title ?? "Curriculum"}
         </Link>
 
-        <header className="mb-6">
+        <header className="mb-8">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold">{lesson.title}</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-[#111111]">{lesson.title}</h1>
             {record?.completed && (
-              <Badge className="font-mono text-[0.65rem]">completed</Badge>
+              <Badge className="font-mono text-[0.7rem] bg-[#F47F45]/10 text-[#F47F45] border border-[#F47F45]/20 font-bold">
+                completed
+              </Badge>
             )}
           </div>
-          <p className="mt-2 text-sm text-muted-foreground">{lesson.blurb}</p>
+          <p className="mt-3 text-base font-medium text-[#707070] leading-relaxed">{lesson.blurb}</p>
         </header>
 
-        <article className="space-y-4">
+        <article className="space-y-6">
           {lesson.body.map((block, i) => (
             <LessonBlock key={i} block={block} />
           ))}
 
           {lesson.circuit && (
-            <LessonCircuit code={lesson.circuit.code} caption={lesson.circuit.caption} />
+            <div className="mt-8">
+              <LessonCircuit code={lesson.circuit.code} caption={lesson.circuit.caption} />
+            </div>
           )}
         </article>
 
-        <LessonAITutor lesson={lesson} />
+        <div className="mt-10">
+          <LessonAITutor lesson={lesson} />
+        </div>
 
-        <section className="panel mt-8 p-5">
-          <h2 className="mb-4 text-sm font-semibold">Check your understanding</h2>
-          <div className="space-y-5">
+        <section className="rounded-2xl border border-[#E5E7EB] bg-white mt-10 p-6 md:p-8 shadow-sm">
+          <h2 className="mb-6 text-lg font-bold text-[#111111]">Check your understanding</h2>
+          <div className="space-y-8">
             {lesson.quiz.map((q) => {
               const picked = answers[q.id];
               const correct = picked === q.answer;
               return (
                 <div key={q.id}>
-                  <p className="mb-2 text-sm">{q.prompt}</p>
-                  <div className="grid gap-2">
+                  <p className="mb-4 text-base font-medium text-[#111111] leading-relaxed">{q.prompt}</p>
+                  <div className="grid gap-3">
                     {q.options.map((opt, idx) => {
                       const active = picked === idx;
                       const state =
                         checked && active
                           ? correct
-                            ? "border-primary text-foreground"
-                            : "border-destructive text-foreground"
+                            ? "border-[#20B486] bg-[#20B486]/5 text-[#111111]"
+                            : "border-[#FF6680] bg-[#FF6680]/5 text-[#111111]"
                           : active
-                            ? "border-primary/70"
-                            : "border-border";
+                            ? "border-[#F47F45] ring-1 ring-[#F47F45] bg-[#F47F45]/5 text-[#111111]"
+                            : "border-[#E5E7EB] bg-gray-50 text-[#707070]";
                       return (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() =>
-                            setAnswers((a) => ({ ...a, [q.id]: idx }))
-                          }
-                          className={`rounded-md border bg-surface-raised px-3 py-2 text-left text-sm transition-colors hover:border-primary/60 ${state}`}
-                        >
-                          {opt}
-                        </button>
+                         <button
+                           key={opt}
+                           type="button"
+                           onClick={() =>
+                             setAnswers((a) => ({ ...a, [q.id]: idx }))
+                           }
+                           className={`rounded-xl border px-4 py-3 text-left text-sm font-semibold transition-all hover:border-[#F47F45] ${state}`}
+                         >
+                           {opt}
+                         </button>
                       );
                     })}
                   </div>
                   {checked && picked !== undefined && (
-                    <p className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
+                    <div className="mt-3 flex items-start gap-2 rounded-lg bg-gray-50 p-3 text-sm font-medium text-[#707070] border border-[#E5E7EB]">
                       {correct ? (
-                        <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 text-primary" />
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#20B486]" />
                       ) : (
-                        <XCircle className="mt-0.5 h-3.5 w-3.5 text-destructive" />
+                        <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#FF6680]" />
                       )}
-                      {q.explain}
-                    </p>
+                      <span>{q.explain}</span>
+                    </div>
                   )}
                 </div>
               );
             })}
           </div>
 
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <Button
-              variant="outline"
+          <div className="mt-8 flex flex-wrap items-center gap-4 border-t border-[#E5E7EB] pt-6">
+            <button
               onClick={() => setChecked(true)}
               disabled={!allAnswered}
+              className="rounded-lg border border-[#E5E7EB] bg-white px-5 py-2.5 text-sm font-bold text-[#111111] transition-colors hover:bg-gray-50 disabled:opacity-50"
             >
               Check answers
-            </Button>
+            </button>
             {checked && (
-              <span className="font-mono text-xs text-muted-foreground">
-                {score}/{lesson.quiz.length} correct
+              <span className="font-mono text-sm font-bold text-[#707070]">
+                <span className={score === lesson.quiz.length ? "text-[#20B486]" : "text-[#FF6680]"}>
+                  {score}
+                </span>
+                /{lesson.quiz.length} correct
               </span>
             )}
-            <Button className="ml-auto" onClick={() => void complete()} disabled={saving}>
+            <button
+              className="ml-auto rounded-lg bg-[#F47F45] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#E3692E] disabled:opacity-70"
+              onClick={() => void complete()}
+              disabled={saving}
+            >
               {record?.completed ? "Update progress" : "Mark complete"}
-            </Button>
+            </button>
           </div>
         </section>
 
-        <nav className="mt-8 flex items-center justify-between gap-3">
+        <nav className="mt-12 flex items-center justify-between border-t border-[#E5E7EB] pt-8">
           {prev ? (
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/learn/$lessonId" params={{ lessonId: prev.id }}>
-                <ArrowLeft className="mr-1.5 h-4 w-4" /> {prev.title}
-              </Link>
-            </Button>
+            <Link
+              to="/learn/$lessonId"
+              params={{ lessonId: prev.id }}
+              className="flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm font-bold text-[#111111] transition-colors hover:bg-gray-50 hover:border-[#F47F45]"
+            >
+              <ArrowLeft className="h-4 w-4 text-[#F47F45]" /> {prev.title}
+            </Link>
           ) : (
             <span />
           )}
           {next && (
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/learn/$lessonId" params={{ lessonId: next.id }}>
-                {next.title} <ArrowRight className="ml-1.5 h-4 w-4" />
-              </Link>
-            </Button>
+            <Link
+              to="/learn/$lessonId"
+              params={{ lessonId: next.id }}
+              className="flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm font-bold text-[#111111] transition-colors hover:bg-gray-50 hover:border-[#F47F45]"
+            >
+              {next.title} <ArrowRight className="h-4 w-4 text-[#F47F45]" />
+            </Link>
           )}
         </nav>
       </main>
@@ -231,20 +247,20 @@ function LessonPage() {
 function LessonBlock({ block }: { block: Lesson["body"][number] }) {
   switch (block.kind) {
     case "h":
-      return <h2 className="pt-2 text-lg font-semibold">{block.text}</h2>;
+      return <h2 className="pt-4 text-xl font-bold text-[#111111]">{block.text}</h2>;
     case "p":
-      return <p className="text-sm leading-relaxed text-muted-foreground">{block.text}</p>;
+      return <p className="text-base font-medium leading-relaxed text-[#707070]">{block.text}</p>;
     case "math":
       return (
-        <pre className="overflow-auto rounded-md border border-border bg-surface-raised p-3 font-mono text-xs text-foreground">
+        <pre className="overflow-auto rounded-xl border border-[#E5E7EB] bg-white p-4 font-mono text-sm font-bold text-[#111111] shadow-sm">
           {block.text}
         </pre>
       );
     case "list":
       return (
-        <ul className="list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
+        <ul className="list-disc space-y-2 pl-6 text-base font-medium text-[#707070]">
           {block.items.map((item) => (
-            <li key={item}>{item}</li>
+            <li key={item} className="leading-relaxed">{item}</li>
           ))}
         </ul>
       );

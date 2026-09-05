@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2, Trophy } from "lucide-react";
-import { AppHeader } from "@/components/quantum/AppHeader";
+import { DashboardNavbar as AppHeader } from "@/components/dashboard/DashboardNavbar";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/hooks/useSession";
 import { useProgress } from "@/hooks/useProgress";
@@ -9,7 +9,7 @@ import { CHALLENGES } from "@/lib/learn/challenges";
 export const Route = createFileRoute("/challenges/")({
   head: () => ({
     meta: [
-      { title: "Quantum coding challenges — Auto-graded | QuantumLab" },
+      { title: "Quantum coding challenges â€” Auto-graded | QuantumLab" },
       {
         name: "description",
         content:

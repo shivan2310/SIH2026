@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, CheckCircle2, Lightbulb, Play, XCircle } from "lucide-react";
-import { AppHeader } from "@/components/quantum/AppHeader";
+import { DashboardNavbar as AppHeader } from "@/components/dashboard/DashboardNavbar";
 import { CircuitCanvas } from "@/components/quantum/CircuitCanvas";
 import { CodePanel } from "@/components/quantum/CodePanel";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/challenges/$challengeId")({
       };
     }
     const { challenge } = loaderData;
-    const title = `${challenge.title} — Quantum challenge | QuantumLab`;
+    const title = `${challenge.title} â€” Quantum challenge | QuantumLab`;
     return {
       meta: [
         { title },

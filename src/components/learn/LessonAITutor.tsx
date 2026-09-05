@@ -51,17 +51,17 @@ export function LessonAITutor({ lesson }: Props) {
 
   if (!user) {
     return (
-      <section className="mt-8 rounded-lg border border-border bg-surface-raised p-5">
-        <div className="flex items-center gap-2 mb-2 text-sm font-semibold text-foreground">
-          <Sparkles className="h-4 w-4 text-primary" />
+      <section className="mt-8 rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-2 text-base font-bold text-[#111111]">
+          <Sparkles className="h-5 w-5 text-[#F47F45]" />
           Discuss this lesson with AI
         </div>
-        <p className="mb-4 text-xs text-muted-foreground">
+        <p className="mb-6 text-sm font-medium text-[#707070]">
           Sign in to ask our AI tutor questions specifically about this lesson material.
         </p>
-        <Button asChild size="sm">
-          <Link to="/auth">Sign in to ask questions</Link>
-        </Button>
+        <Link to="/auth" className="inline-block rounded-lg bg-[#F47F45] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#E3692E]">
+          Sign in to ask questions
+        </Link>
       </section>
     );
   }
@@ -92,25 +92,25 @@ export function LessonAITutor({ lesson }: Props) {
   }
 
   return (
-    <section className="mt-8 rounded-lg border border-border bg-surface-raised overflow-hidden">
+    <section className="mt-8 rounded-2xl border border-[#E5E7EB] bg-white shadow-sm overflow-hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between p-5 text-left transition-colors hover:bg-surface"
+        className="flex w-full items-center justify-between p-6 text-left transition-colors hover:bg-gray-50"
       >
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Sparkles className="h-4 w-4 text-primary" />
+        <div className="flex items-center gap-2 text-base font-bold text-[#111111]">
+          <Sparkles className="h-5 w-5 text-[#F47F45]" />
           Discuss this lesson with AI
         </div>
-        <div className="text-xs text-muted-foreground font-medium">
+        <div className="text-sm text-[#707070] font-semibold">
           {isOpen ? "Hide chat" : "Ask a question"}
         </div>
       </button>
 
       {isOpen && (
-        <div className="border-t border-border p-5 pt-4">
-          <div className="mb-4 max-h-[400px] space-y-4 overflow-y-auto rounded-md bg-surface p-4">
+        <div className="border-t border-[#E5E7EB] p-6 pt-4 bg-gray-50/50">
+          <div className="mb-4 max-h-[400px] space-y-4 overflow-y-auto rounded-xl bg-white border border-[#E5E7EB] p-5">
             {messages.length === 0 && (
-              <p className="text-center text-xs text-muted-foreground py-4">
+              <p className="text-center text-sm font-medium text-[#707070] py-6">
                 Ask anything about {lesson.title}. The tutor knows what you're reading!
               </p>
             )}
@@ -125,20 +125,20 @@ export function LessonAITutor({ lesson }: Props) {
               >
                 <div
                   className={cn(
-                    "flex-shrink-0 h-7 w-7 rounded-full flex items-center justify-center text-xs",
+                    "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-xs shadow-sm",
                     m.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-surface-raised border border-border"
+                      ? "bg-[#F47F45] text-white"
+                      : "bg-gray-100 border border-[#E5E7EB] text-[#707070]"
                   )}
                 >
-                  {m.role === "user" ? <User className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
+                  {m.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                 </div>
                 <div
                   className={cn(
-                    "rounded-2xl px-4 py-2 max-w-[85%] text-sm whitespace-pre-wrap leading-relaxed",
+                    "rounded-2xl px-4 py-3 max-w-[85%] text-sm font-medium whitespace-pre-wrap leading-relaxed shadow-sm",
                     m.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-tr-none"
-                      : "bg-surface-raised border border-border rounded-tl-none"
+                      ? "bg-[#F47F45] text-white rounded-tr-none"
+                      : "bg-gray-100 border border-[#E5E7EB] text-[#111111] rounded-tl-none"
                   )}
                 >
                   {m.content}
@@ -148,18 +148,18 @@ export function LessonAITutor({ lesson }: Props) {
             
             {thinking && (
               <div className="flex gap-3 flex-row">
-                <div className="flex-shrink-0 h-7 w-7 rounded-full bg-surface-raised border border-border flex items-center justify-center">
-                  <Bot className="h-3.5 w-3.5" />
+                <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-100 border border-[#E5E7EB] flex items-center justify-center text-[#707070] shadow-sm">
+                  <Bot className="h-4 w-4" />
                 </div>
-                <div className="rounded-2xl rounded-tl-none bg-surface-raised border border-border px-4 py-3">
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <div className="rounded-2xl rounded-tl-none bg-gray-100 border border-[#E5E7EB] px-5 py-3 shadow-sm">
+                  <Loader2 className="h-4 w-4 animate-spin text-[#707070]" />
                 </div>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Textarea
               value={input}
               rows={1}
@@ -171,17 +171,16 @@ export function LessonAITutor({ lesson }: Props) {
                   void send();
                 }
               }}
-              className="min-h-11 resize-none text-sm py-3"
+              className="min-h-12 resize-none text-sm py-3.5 bg-white border-[#E5E7EB] font-medium text-[#111111]"
             />
-            <Button
-              size="icon"
+            <button
               onClick={() => void send()}
               disabled={thinking || !input.trim()}
-              className="h-11 w-11 shrink-0"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#F47F45] text-white shadow-sm transition-colors hover:bg-[#E3692E] disabled:opacity-50"
               aria-label="Send"
             >
-              <Send className="h-4 w-4" />
-            </Button>
+              <Send className="h-5 w-5" />
+            </button>
           </div>
         </div>
       )}

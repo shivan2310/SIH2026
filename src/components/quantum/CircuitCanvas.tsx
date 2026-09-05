@@ -3,7 +3,7 @@ import { GATES } from "@/lib/quantum/gates";
 import { formatAngle } from "@/lib/quantum/code";
 import { circuitDepth, qubitsOf, type GateInstance, type GateType, type QCircuit } from "@/lib/quantum/ir";
 import { cn } from "@/lib/utils";
-import { X } from "lucide-react";
+import { X, ZoomIn, ZoomOut, MoreHorizontal } from "lucide-react";
 
 const COL_W = 64;
 const ROW_H = 60;
@@ -46,80 +46,108 @@ export function CircuitCanvas({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-border bg-surface/60 grid-dots">
-      <div
-        className="relative"
-        style={{ width, height: height + 24, minWidth: "100%" }}
-      >
-        {/* wires + labels */}
-        {Array.from({ length: circuit.numQubits }).map((_, q) => (
-          <div
-            key={q}
-            className="absolute flex items-center"
-            style={{ top: q * ROW_H + 12, left: 0, width, height: ROW_H }}
-          >
-            <span className="w-[68px] shrink-0 pl-3 font-mono text-xs text-muted-foreground">
-              q[{q}] <span className="text-foreground/60">|0⟩</span>
-            </span>
-            <span
-              className="h-px flex-1"
-              style={{ backgroundColor: "var(--color-wire)" }}
-            />
-          </div>
-        ))}
+    <div className="flex flex-col rounded-2xl border border-[#E5E7EB] bg-white shadow-sm overflow-hidden h-full">
+      {/* Canvas Header & Controls */}
+      <div className="flex items-center justify-between border-b border-[#E5E7EB] bg-gray-50 px-4 py-3">
+        <div>
+          <h3 className="text-sm font-bold text-[#111111]">Circuit Canvas</h3>
+          <p className="text-xs font-medium text-[#707070]">{circuit.numQubits} qubits Â· Drag gates, connect, and simulate</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button className="flex h-8 w-8 items-center justify-center rounded-lg text-[#707070] hover:bg-gray-200 hover:text-[#111111]">
+            <ZoomOut className="h-4 w-4" />
+          </button>
+          <button className="flex h-8 w-8 items-center justify-center rounded-lg text-[#707070] hover:bg-gray-200 hover:text-[#111111]">
+            <ZoomIn className="h-4 w-4" />
+          </button>
+          <button className="flex h-8 w-8 items-center justify-center rounded-lg text-[#707070] hover:bg-gray-200 hover:text-[#111111]">
+            <MoreHorizontal className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
 
-        {/* active step highlight */}
-        {activeColumn !== null && activeColumn >= 0 && (
-          <div
-            className="pointer-events-none absolute rounded-md border border-primary/60 bg-primary/10"
-            style={{
-              left: LABEL_W + activeColumn * COL_W + 4,
-              top: 12,
-              width: COL_W - 8,
-              height,
-            }}
-          />
-        )}
-
-        {/* drop cells */}
-        {Array.from({ length: circuit.numQubits }).map((_, q) =>
-          Array.from({ length: columns }).map((__, c) => (
+      <div className="flex-1 overflow-x-auto relative custom-scrollbar bg-[radial-gradient(#E5E7EB_2px,transparent_2px)] [background-size:24px_24px] bg-white">
+        <div
+          className="relative min-w-full"
+          style={{ width: Math.max(width, 600), height: height + 48 }}
+        >
+          {/* wires + labels */}
+          {Array.from({ length: circuit.numQubits }).map((_, q) => (
             <div
-              key={`${q}-${c}`}
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = "copy";
-                setHover({ q, c });
-              }}
-              onDragLeave={() => setHover((h) => (h?.q === q && h.c === c ? null : h))}
-              onDrop={(e) => handleDrop(e, q, c)}
-              onClick={() => onSelect(null)}
-              className={cn(
-                "absolute rounded-md transition-colors",
-                hover?.q === q && hover.c === c
-                  ? "bg-primary/20 ring-1 ring-primary/60"
-                  : "bg-transparent",
-              )}
+              key={q}
+              className="absolute flex items-center"
+              style={{ top: q * ROW_H + 24, left: 0, width: "100%", minWidth: width, height: ROW_H }}
+            >
+              <span className="w-[68px] shrink-0 pl-4 font-mono text-xs font-bold text-[#111111]">
+                q{q} <span className="text-[#707070] font-medium">|0âŸ©</span>
+              </span>
+              <span
+                className="h-[2px] flex-1 bg-[#E5E7EB]"
+              />
+            </div>
+          ))}
+
+          {/* active step highlight */}
+          {activeColumn !== null && activeColumn >= 0 && (
+            <div
+              className="pointer-events-none absolute rounded-lg border border-[#F47F45]/40 bg-[#F47F45]/10"
               style={{
-                left: LABEL_W + c * COL_W + 6,
-                top: q * ROW_H + 12 + 6,
-                width: COL_W - 12,
-                height: ROW_H - 12,
+                left: LABEL_W + activeColumn * COL_W + 4,
+                top: 24,
+                width: COL_W - 8,
+                height,
               }}
             />
-          )),
-        )}
+          )}
 
-        {/* gates */}
-        {circuit.gates.map((gate) => (
-          <GateNode
-            key={gate.id}
-            gate={gate}
-            selected={selectedId === gate.id}
-            onSelect={onSelect}
-            onDelete={onDelete}
-          />
-        ))}
+          {/* drop cells */}
+          {Array.from({ length: circuit.numQubits }).map((_, q) =>
+            Array.from({ length: columns }).map((__, c) => (
+              <div
+                key={`${q}-${c}`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "copy";
+                  setHover({ q, c });
+                }}
+                onDragLeave={() => setHover((h) => (h?.q === q && h.c === c ? null : h))}
+                onDrop={(e) => handleDrop(e, q, c)}
+                onClick={() => onSelect(null)}
+                className={cn(
+                  "absolute rounded-lg transition-all",
+                  hover?.q === q && hover.c === c
+                    ? "bg-[#F47F45]/20 ring-2 ring-[#F47F45]/40"
+                    : "bg-transparent",
+                )}
+                style={{
+                  left: LABEL_W + c * COL_W + 6,
+                  top: q * ROW_H + 24 + 6,
+                  width: COL_W - 12,
+                  height: ROW_H - 12,
+                }}
+              />
+            )),
+          )}
+
+          {/* gates */}
+          {circuit.gates.map((gate) => (
+            <GateNode
+              key={gate.id}
+              gate={gate}
+              selected={selectedId === gate.id}
+              onSelect={onSelect}
+              onDelete={onDelete}
+            />
+          ))}
+
+          {/* Minimap (mock representation as requested) */}
+          <div className="absolute bottom-4 right-4 h-24 w-32 rounded-lg border border-[#E5E7EB] bg-white/90 shadow-sm backdrop-blur-sm p-2 hidden lg:block">
+            <div className="w-full h-full border border-dashed border-[#E5E7EB] rounded relative">
+              <div className="absolute top-2 left-2 w-8 h-4 bg-[#F47F45]/20 rounded border border-[#F47F45]"></div>
+              <div className="absolute top-6 left-6 w-8 h-4 bg-[#20B486]/20 rounded border border-[#20B486]"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -142,12 +170,17 @@ function GateNode({
   const hi = Math.max(...qs);
   const x = LABEL_W + gate.column * COL_W + COL_W / 2;
 
+  // Use the gate's color or fallback to primary purple, but make it soft
+  const gateColor = def.color || "#F47F45";
+  const softBg = `${gateColor}20`; // 20% opacity hex
+  const borderCol = gateColor;
+
   const wrapper = (children: React.ReactNode) => (
     <div
       className="absolute"
       style={{
         left: x - COL_W / 2,
-        top: lo * ROW_H + 12,
+        top: lo * ROW_H + 24,
         width: COL_W,
         height: (hi - lo + 1) * ROW_H,
       }}
@@ -170,9 +203,9 @@ function GateNode({
             e.stopPropagation();
             onDelete(gate.id);
           }}
-          className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground"
+          className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-white border border-[#E5E7EB] shadow-sm text-[#FF6680] hover:bg-[#FF6680] hover:text-white transition-colors z-10"
         >
-          <X className="h-3 w-3" />
+          <X className="h-3.5 w-3.5" />
         </button>
       )}
     </div>
@@ -181,12 +214,12 @@ function GateNode({
   const connector =
     hi > lo ? (
       <span
-        className="absolute w-0.5"
+        className="absolute w-[2px]"
         style={{
           left: COL_W / 2 - 1,
           top: ROW_H / 2,
           height: (hi - lo) * ROW_H,
-          backgroundColor: def.color,
+          backgroundColor: borderCol,
         }}
       />
     ) : null;
@@ -194,11 +227,11 @@ function GateNode({
   const dot = (q: number) => (
     <span
       key={`c${q}`}
-      className="absolute h-3 w-3 rounded-full"
+      className="absolute h-3 w-3 rounded-full shadow-sm"
       style={{
         left: COL_W / 2 - 6,
         top: (q - lo) * ROW_H + ROW_H / 2 - 6,
-        backgroundColor: def.color,
+        backgroundColor: borderCol,
       }}
     />
   );
@@ -207,15 +240,17 @@ function GateNode({
     <div
       key={`t${q}`}
       className={cn(
-        "absolute flex items-center justify-center rounded-md font-mono text-xs font-bold text-background shadow-lg",
-        selected && "ring-2 ring-offset-2 ring-offset-background ring-foreground",
+        "absolute flex items-center justify-center rounded-lg font-mono text-sm font-bold shadow-sm transition-all",
+        selected ? "ring-2 ring-offset-2 ring-offset-white ring-[#F47F45]" : "border"
       )}
       style={{
-        left: COL_W / 2 - 19,
-        top: (q - lo) * ROW_H + ROW_H / 2 - 17,
-        width: 38,
-        height: 34,
-        backgroundColor: def.color,
+        left: COL_W / 2 - 22,
+        top: (q - lo) * ROW_H + ROW_H / 2 - 20,
+        width: 44,
+        height: 40,
+        backgroundColor: softBg,
+        borderColor: borderCol,
+        color: borderCol,
       }}
     >
       {label}
@@ -231,21 +266,21 @@ function GateNode({
             key={q}
             className="absolute font-mono text-lg font-bold"
             style={{
-              left: COL_W / 2 - 6,
+              left: COL_W / 2 - 7,
               top: (q - lo) * ROW_H + ROW_H / 2 - 14,
-              color: def.color,
+              color: borderCol,
             }}
           >
-            ✕
+            âœ•
           </span>
         ))}
-      </div>,
+      </div>
     );
   }
 
   const targetLabel =
     gate.type === "cx" || gate.type === "ccx"
-      ? "⊕"
+      ? "âŠ•"
       : gate.type === "cz"
         ? "Z"
         : gate.type === "measure"
@@ -262,17 +297,17 @@ function GateNode({
       {gate.targets.map((q) => box(q, targetLabel))}
       {paramLabel && (
         <span
-          className="absolute whitespace-nowrap font-mono text-[0.6rem] text-muted-foreground"
+          className="absolute whitespace-nowrap font-mono text-[10px] font-semibold text-[#707070]"
           style={{
-            left: COL_W / 2 - 19,
-            top: (gate.targets[0]! - lo) * ROW_H + ROW_H / 2 + 18,
-            width: 38,
+            left: COL_W / 2 - 22,
+            top: (gate.targets[0]! - lo) * ROW_H + ROW_H / 2 + 22,
+            width: 44,
             textAlign: "center",
           }}
         >
           {paramLabel}
         </span>
       )}
-    </div>,
+    </div>
   );
 }

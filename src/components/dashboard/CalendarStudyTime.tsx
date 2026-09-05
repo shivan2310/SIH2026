@@ -11,7 +11,7 @@ export function CalendarStudyTime({ activeDates }: CalendarStudyTimeProps) {
   return (
     <div className="flex h-full flex-col rounded-2xl border border-[#E7E7E7] bg-white p-6 shadow-sm">
       {/* Segmented Control */}
-      <div className="mb-6 flex rounded-lg bg-[#F5F5F5] p-1">
+      <div className="mb-4 flex rounded-lg bg-[#F5F5F5] p-1">
         <button
           onClick={() => setActiveTab("calendar")}
           className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-colors ${
@@ -73,7 +73,7 @@ function CalendarView({ activeDates }: { activeDates: Set<string> }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-y-2">
+      <div className="grid grid-cols-7 gap-y-1">
         {days.map((d) => (
           <div key={d} className="text-center text-[10px] font-semibold tracking-wider text-[#707070]">
             {d}
@@ -93,15 +93,15 @@ function CalendarView({ activeDates }: { activeDates: Set<string> }) {
           }
 
           return (
-            <div key={date} className="flex flex-col items-center justify-center p-1">
+            <div key={date} className="flex flex-col items-center justify-center">
               <span
-                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium ${
+                className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-medium ${
                   isToday ? "bg-[#F47F45] text-white" : "text-[#111111]"
                 }`}
               >
                 {date}
               </span>
-              <div className="h-1.5">{indicator}</div>
+              <div className="h-1">{indicator}</div>
             </div>
           );
         })}

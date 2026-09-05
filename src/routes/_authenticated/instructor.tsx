@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Plus, Trash2, Users } from "lucide-react";
-import { AppHeader } from "@/components/quantum/AppHeader";
+import { DashboardNavbar as AppHeader } from "@/components/dashboard/DashboardNavbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,7 @@ import { getInstructorCohorts, getInstructorCohortDetails, createCohort as creat
 export const Route = createFileRoute("/_authenticated/instructor")({
   head: () => ({
     meta: [
-      { title: "Instructor dashboard — Cohorts & analytics | QuantumLab" },
+      { title: "Instructor dashboard â€” Cohorts & analytics | QuantumLab" },
       {
         name: "description",
         content:
@@ -66,8 +66,8 @@ interface StudentStats {
 }
 
 const ITEMS = [
-  ...LESSONS.map((l) => ({ value: `lesson:${l.id}`, label: `Lesson — ${l.title}` })),
-  ...CHALLENGES.map((c) => ({ value: `challenge:${c.id}`, label: `Challenge — ${c.title}` })),
+  ...LESSONS.map((l) => ({ value: `lesson:${l.id}`, label: `Lesson â€” ${l.title}` })),
+  ...CHALLENGES.map((c) => ({ value: `challenge:${c.id}`, label: `Challenge â€” ${c.title}` })),
 ];
 
 function InstructorPage() {
@@ -127,7 +127,7 @@ function InstructorPage() {
       setName("");
       setCohorts((c) => [...c, data]);
       setActiveId(data.id);
-      toast.success(`Class created — join code ${data.join_code}`);
+      toast.success(`Class created â€” join code ${data.join_code}`);
     } catch (err) {
       toast.error("Couldn't create the class");
     }
@@ -192,11 +192,11 @@ function InstructorPage() {
 
         {loading ? (
           <p className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Loading classes…
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading classesâ€¦
           </p>
         ) : cohorts.length === 0 ? (
           <p className="mt-6 text-sm text-muted-foreground">
-            No classes yet — create one above.
+            No classes yet â€” create one above.
           </p>
         ) : (
           <>

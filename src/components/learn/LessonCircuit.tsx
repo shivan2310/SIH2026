@@ -29,7 +29,7 @@ export function LessonCircuit({ code, caption }: Props) {
   if (!circuit) return null;
 
   return (
-    <figure className="panel space-y-4 p-4">
+    <figure className="rounded-2xl border border-[#E5E7EB] bg-white space-y-4 p-5 shadow-sm">
       <CircuitCanvas
         circuit={circuit}
         selectedId={null}
@@ -40,32 +40,30 @@ export function LessonCircuit({ code, caption }: Props) {
         activeColumn={null}
       />
 
-      <div className="space-y-1.5">
+      <div className="space-y-2 mt-4 pt-4 border-t border-[#E5E7EB]">
         {bars.map(([label, p]) => (
-          <div key={label} className="flex items-center gap-2">
-            <span className="w-16 font-mono text-[0.65rem] text-muted-foreground">
+          <div key={label} className="flex items-center gap-3">
+            <span className="w-16 font-mono text-xs font-bold text-[#111111]">
               |{label}&gt;
             </span>
-            <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-raised">
+            <div className="h-3 flex-1 overflow-hidden rounded-full bg-gray-100">
               <div
-                className="h-full rounded-full bg-primary"
+                className="h-full rounded-full bg-[#F47F45]"
                 style={{ width: `${Math.round(p * 100)}%` }}
               />
             </div>
-            <span className="w-12 text-right font-mono text-[0.65rem] text-muted-foreground">
+            <span className="w-12 text-right font-mono text-xs font-bold text-[#707070]">
               {(p * 100).toFixed(1)}%
             </span>
           </div>
         ))}
       </div>
 
-      <figcaption className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+      <figcaption className="flex flex-wrap items-center gap-3 text-sm font-medium text-[#707070] mt-4 pt-4 border-t border-[#E5E7EB]">
         <span className="flex-1">{caption}</span>
-        <Button asChild size="sm" variant="outline">
-          <Link to="/lab" search={{ code }}>
-            <ExternalLink className="mr-1.5 h-3.5 w-3.5" /> Open in Lab
-          </Link>
-        </Button>
+        <Link to="/lab" search={{ code }} className="flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-bold text-[#111111] transition-colors hover:bg-gray-50 hover:border-[#F47F45]">
+          <ExternalLink className="h-4 w-4 text-[#F47F45]" /> Open in Lab
+        </Link>
       </figcaption>
     </figure>
   );

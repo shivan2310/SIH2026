@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Cpu, Wifi, WifiOff } from "lucide-react";
-import { AppHeader } from "@/components/quantum/AppHeader";
+import { DashboardNavbar as AppHeader } from "@/components/dashboard/DashboardNavbar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BACKENDS, remoteServiceConfigured } from "@/lib/quantum/backend";
@@ -8,7 +8,7 @@ import { BACKENDS, remoteServiceConfigured } from "@/lib/quantum/backend";
 export const Route = createFileRoute("/backends")({
   head: () => ({
     meta: [
-      { title: "Simulator backends — Qiskit, PennyLane, Cirq, qBraid | QuantumLab" },
+      { title: "Simulator backends â€” Qiskit, PennyLane, Cirq, qBraid | QuantumLab" },
       {
         name: "description",
         content:
@@ -54,7 +54,7 @@ function BackendsPage() {
             <>
               <WifiOff className="h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-muted-foreground">
-                No external compute service configured — SDK backends fall back locally.
+                No external compute service configured â€” SDK backends fall back locally.
               </span>
             </>
           )}

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AppHeader } from "@/components/quantum/AppHeader";
+import { DashboardNavbar as AppHeader } from "@/components/dashboard/DashboardNavbar";
 import { Button } from "@/components/ui/button";
 import {
   Binary,
@@ -11,7 +11,7 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "QuantumLab — Learn, Build & Simulate Quantum Circuits" },
+      { title: "QuantumLab â€” Learn, Build & Simulate Quantum Circuits" },
       {
         name: "description",
         content:
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
       },
       {
         property: "og:title",
-        content: "QuantumLab — Learn, Build & Simulate Quantum Circuits",
+        content: "QuantumLab â€” Learn, Build & Simulate Quantum Circuits",
       },
       {
         property: "og:description",
@@ -42,7 +42,7 @@ const PHASE1 = [
   {
     icon: Binary,
     title: "Two-way code editor",
-    body: "Canvas and code share one internal representation — edit either, both stay in sync.",
+    body: "Canvas and code share one internal representation â€” edit either, both stay in sync.",
   },
   {
     icon: GaugeCircle,
@@ -72,7 +72,7 @@ function Home() {
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg">
             QuantumLab turns superposition, entanglement and quantum algorithms
-            into something you can build, run and watch — a circuit lab in your
+            into something you can build, run and watch â€” a circuit lab in your
             browser with no installs and no hardware queue.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -104,7 +104,7 @@ function Home() {
 
       </main>
       <footer className="border-t border-border py-8 text-center font-mono text-xs text-muted-foreground">
-        QuantumLab · built for a quantum-ready workforce
+        QuantumLab Â· built for a quantum-ready workforce
       </footer>
     </div>
   );

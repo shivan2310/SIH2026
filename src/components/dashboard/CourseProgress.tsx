@@ -16,7 +16,7 @@ export function CourseProgress({ courses }: { courses: CourseData[] }) {
       case 0:
         return { icon: <BookOpen className="h-5 w-5 text-[#20B486]" />, bg: "bg-[#20B486]/10" };
       case 1:
-        return { icon: <Layers className="h-5 w-5 text-[#9B6CFF]" />, bg: "bg-[#9B6CFF]/10" };
+        return { icon: <Layers className="h-5 w-5 text-[#F47F45]" />, bg: "bg-[#F47F45]/10" };
       case 2:
         return { icon: <Zap className="h-5 w-5 text-[#FF6680]" />, bg: "bg-[#FF6680]/10" };
       default:

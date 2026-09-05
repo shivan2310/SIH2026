@@ -1,46 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCircuit } from "@/lib/circuits/actions";
-import { SaveCircuitPanel } from "@/components/quantum/SaveCircuitPanel";
-import { AIPanel } from "@/components/quantum/AIPanel";
-import { AppHeader } from "@/components/quantum/AppHeader";
+import { toast } from "sonner";
+import { useCircuitLab } from "@/hooks/useCircuitLab";
+import { circuitDepth, MAX_QUBITS, type QCircuit } from "@/lib/quantum/ir";
+import { circuitToQiskit } from "@/lib/quantum/code";
+
+import { DashboardNavbar } from "@/components/dashboard/DashboardNavbar";
 import { GatePalette } from "@/components/quantum/GatePalette";
 import { CircuitCanvas } from "@/components/quantum/CircuitCanvas";
-import { CodePanel } from "@/components/quantum/CodePanel";
+import { LabRightSidebar } from "@/components/quantum/LabRightSidebar";
 import { ResultsPanel } from "@/components/quantum/ResultsPanel";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Copy,
-  Download,
-  Minus,
-  Play,
-  Sparkles,
-  Plus,
-  Redo2,
-  Trash2,
-  Undo2,
-} from "lucide-react";
-import { useCircuitLab } from "@/hooks/useCircuitLab";
-import { BACKENDS } from "@/lib/quantum/backend";
-import { EXAMPLES } from "@/lib/quantum/examples";
-import { circuitToQiskit, formatAngle } from "@/lib/quantum/code";
-import { GATES } from "@/lib/quantum/gates";
-import { circuitDepth, MAX_QUBITS, type QCircuit } from "@/lib/quantum/ir";
+import { BlochSphereDisplay } from "@/components/quantum/BlochSphereDisplay";
+import { CircuitInsights } from "@/components/quantum/CircuitInsights";
+import { SaveCircuitPanel } from "@/components/quantum/SaveCircuitPanel";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export const Route = createFileRoute("/lab")({
   validateSearch: (
@@ -51,20 +25,7 @@ export const Route = createFileRoute("/lab")({
   }),
   head: () => ({
     meta: [
-      { title: "Quantum Circuit Lab — Build & Simulate | QuantumLab" },
-      {
-        name: "description",
-        content:
-          "Design quantum circuits by drag-and-drop or code, simulate them instantly in your browser, and inspect Bloch spheres, amplitudes and measurement statistics.",
-      },
-      { property: "og:title", content: "Quantum Circuit Lab — Build & Simulate" },
-      {
-        property: "og:description",
-        content:
-          "Drag-and-drop quantum circuit builder with a synchronized code editor, browser statevector simulation and live state visualization.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { title: "Circuit Lab | QuantumLab" },
     ],
   }),
   component: LabPage,
@@ -77,7 +38,6 @@ function LabPage() {
   const [circuitId, setCircuitId] = useState<string | null>(search.circuit ?? null);
   const loadedRef = useRef<string | null>(null);
 
-  // Adopt a circuit passed in from a lesson or challenge via ?code=
   const codeParam = search.code;
   useEffect(() => {
     if (!codeParam || loadedRef.current === codeParam) return;
@@ -85,7 +45,6 @@ function LabPage() {
     lab.onCodeChange(codeParam);
   }, [codeParam, lab]);
 
-  // Open a cloud-saved circuit when arriving with ?circuit=<id>
   useEffect(() => {
     const id = search.circuit;
     if (!id || loadedRef.current === id) return;
@@ -105,23 +64,15 @@ function LabPage() {
     })();
   }, [search.circuit, lab]);
 
-
   const {
     circuit,
     result,
     step,
-    setStep,
     run,
     running,
-    runError,
     undo,
     redo,
-    canUndo,
-    canRedo,
   } = lab;
-
-  const selectedGate = circuit.gates.find((g) => g.id === lab.selectedId) ?? null;
-  const maxStep = result ? result.steps.length - 1 : 0;
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -162,60 +113,80 @@ function LabPage() {
     URL.revokeObjectURL(url);
   }, [circuit]);
 
+  const viewState = result ? (result.steps[Math.min(step, result.steps.length - 1)] ?? result.state) : null;
+
   return (
-    <div className="min-h-screen">
-      <AppHeader />
-      <main className="mx-auto max-w-[1600px] px-4 py-6">
-        <div className="grid gap-4 xl:grid-cols-[260px_minmax(0,1fr)_380px]">
-          {/* Palette */}
-          <aside className="panel h-fit p-4">
-            <h2 className="mb-4 text-sm font-semibold">Gate palette</h2>
-            <GatePalette
-              onPick={(def) =>
-                lab.placeGate(def.type, 0, circuitDepth(circuit))
-              }
-            />
-          </aside>
+    <div className="flex h-screen bg-[#F5F5F5] font-sans text-[#111111] overflow-hidden">
 
-          {/* Canvas + code */}
-          <section className="space-y-4">
-            <div className="panel p-4">
-              <div className="mb-3 flex flex-wrap items-center gap-2">
-                <h2 className="mr-auto text-sm font-semibold">Circuit</h2>
-                <Badge variant="secondary" className="font-mono text-[0.65rem]">
-                  {circuit.numQubits} qubits · depth {circuitDepth(circuit)} ·{" "}
-                  {circuit.gates.length} gates
-                </Badge>
-                <Button size="sm" variant="ghost" onClick={undo} disabled={!canUndo} aria-label="Undo">
-                  <Undo2 className="h-4 w-4" />
-                </Button>
-                <Button size="sm" variant="ghost" onClick={redo} disabled={!canRedo} aria-label="Redo">
-                  <Redo2 className="h-4 w-4" />
-                </Button>
-                <Separator orientation="vertical" className="h-6" />
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={lab.removeQubit}
-                  disabled={circuit.numQubits <= 1}
-                  aria-label="Remove qubit"
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={lab.addQubit}
-                  disabled={circuit.numQubits >= MAX_QUBITS}
-                  aria-label="Add qubit"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-                <Button size="sm" variant="ghost" onClick={lab.clear} aria-label="Clear circuit">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
 
+      {/* Main Content Area */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Top Navigation */}
+        <DashboardNavbar />
+
+        {/* Scrollable Content */}
+        <main className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+          
+          {/* Page Header */}
+          <div className="mb-8 flex items-end justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-[#111111]">Build Quantum Circuits</h1>
+              <p className="mt-2 text-sm font-medium text-[#707070]">
+                Drag and drop gates, run simulations, and explore the strange world of quantum mechanics.
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <button
+                onClick={lab.clear}
+                className="rounded-lg border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-semibold text-[#111111] transition-colors hover:bg-gray-50"
+              >
+                Clear
+              </button>
+              
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="rounded-lg border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-semibold text-[#111111] transition-colors hover:bg-gray-50">
+                    Save / Share
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-4" align="end">
+                  <SaveCircuitPanel
+                    circuit={circuit}
+                    circuitId={circuitId}
+                    onSaved={(id) => {
+                      setCircuitId(id);
+                      loadedRef.current = id;
+                      void navigate({ to: "/lab", search: { circuit: id }, replace: true });
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+              
+              <button
+                onClick={() => void run()}
+                disabled={running}
+                className="rounded-lg bg-[#F47F45] px-6 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#E3692E] disabled:opacity-70"
+              >
+                {running ? "Simulating..." : "Run Simulation"}
+              </button>
+            </div>
+          </div>
+
+          {/* Builder Area: 3 Columns */}
+          <div className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[280px_minmax(600px,_1fr)_380px]">
+            
+            {/* Left Col: Gate Palette */}
+            <div className="h-[550px] rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm">
+              <GatePalette
+                onPick={(def) =>
+                  lab.placeGate(def.type, 0, circuitDepth(circuit))
+                }
+              />
+            </div>
+
+            {/* Center Col: Canvas */}
+            <div className="h-[550px]">
               <CircuitCanvas
                 circuit={circuit}
                 selectedId={lab.selectedId}
@@ -225,187 +196,40 @@ function LabPage() {
                 onDelete={lab.deleteGate}
                 activeColumn={result && step > 0 ? step - 1 : null}
               />
-
-              {selectedGate && GATES[selectedGate.type].params.length > 0 && (
-                <div className="mt-4 rounded-md border border-border bg-surface-raised p-3">
-                  <p className="mb-2 font-mono text-xs text-muted-foreground">
-                    {GATES[selectedGate.type].name} parameter
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <Slider
-                      value={[selectedGate.params[0] ?? 0]}
-                      min={-Math.PI * 2}
-                      max={Math.PI * 2}
-                      step={Math.PI / 16}
-                      onValueChange={([v]) =>
-                        lab.setGateParam(selectedGate.id, 0, v ?? 0)
-                      }
-                      className="flex-1"
-                    />
-                    <span className="w-20 text-right font-mono text-xs">
-                      {formatAngle(selectedGate.params[0] ?? 0)}
-                    </span>
-                  </div>
-                </div>
-              )}
             </div>
 
-            <div className="panel p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <h2 className="mr-auto text-sm font-semibold">Code editor</h2>
-                <Button size="sm" variant="outline" onClick={copyQiskit}>
-                  <Copy className="mr-1.5 h-3.5 w-3.5" /> Qiskit
-                </Button>
-                <Button size="sm" variant="outline" onClick={downloadJson}>
-                  <Download className="mr-1.5 h-3.5 w-3.5" /> JSON
-                </Button>
-              </div>
-              <CodePanel
+            {/* Right Col: AI & Code */}
+            <div className="h-[550px]">
+              <LabRightSidebar
                 code={lab.code}
-                errors={lab.codeErrors}
-                onChange={lab.onCodeChange}
+                codeErrors={lab.codeErrors}
+                onCodeChange={lab.onCodeChange}
+                onCopyQiskit={copyQiskit}
+                onDownloadJson={downloadJson}
               />
             </div>
-          </section>
+          </div>
 
-          {/* Run + results */}
-          <aside className="space-y-4">
-            <div className="panel p-4">
-              <h2 className="mb-3 text-sm font-semibold">Execution</h2>
-              <div className="space-y-3">
-                <div>
-                  <Label className="mb-1.5 block text-xs text-muted-foreground">
-                    Backend
-                  </Label>
-                  <Select value={lab.backendId} onValueChange={lab.setBackendId}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {BACKENDS.map((b) => (
-                        <SelectItem key={b.id} value={b.id} disabled={!b.available}>
-                          {b.name}
-                          {b.available ? "" : " — coming soon"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="shots" className="mb-1.5 block text-xs text-muted-foreground">
-                      Shots
-                    </Label>
-                    <Input
-                      id="shots"
-                      type="number"
-                      min={1}
-                      max={100000}
-                      value={lab.shots}
-                      onChange={(e) => lab.setShots(Number(e.target.value) || 1)}
-                      className="font-mono"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="seed" className="mb-1.5 block text-xs text-muted-foreground">
-                      Seed
-                    </Label>
-                    <Input
-                      id="seed"
-                      type="number"
-                      value={lab.seed}
-                      onChange={(e) => lab.setSeed(Number(e.target.value) || 0)}
-                      className="font-mono"
-                    />
-                  </div>
-                </div>
-                <Button className="w-full" onClick={() => void run()} disabled={running}>
-                  <Play className="mr-1.5 h-4 w-4" />
-                  {running ? "Simulating…" : "Run circuit"}
-                </Button>
-                {runError && (
-                  <p className="font-mono text-xs text-destructive">{runError}</p>
-                )}
-                {result && (
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setStep(Math.max(0, step - 1))}
-                      disabled={step <= 0}
-                      aria-label="Previous step"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Slider
-                      value={[step]}
-                      min={0}
-                      max={maxStep}
-                      step={1}
-                      onValueChange={([v]) => setStep(v ?? 0)}
-                      className="flex-1"
-                    />
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setStep(Math.min(maxStep, step + 1))}
-                      disabled={step >= maxStep}
-                      aria-label="Next step"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                    <span className="w-16 text-right font-mono text-[0.65rem] text-muted-foreground">
-                      step {step}/{maxStep}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="panel p-4">
-              <h2 className="mb-3 text-sm font-semibold">Save & share</h2>
-              <SaveCircuitPanel
-                circuit={circuit}
-                circuitId={circuitId}
-                onSaved={(id) => {
-                  setCircuitId(id);
-                  loadedRef.current = id;
-                  void navigate({ to: "/lab", search: { circuit: id }, replace: true });
-                }}
-              />
-            </div>
-
-            <div className="panel p-4">
-              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                <Sparkles className="h-4 w-4 text-primary" /> AI tutor
-              </h2>
-              <AIPanel code={lab.code} onApplyCode={lab.onCodeChange} />
-            </div>
-
-            <div className="panel p-4">
-              <h2 className="mb-3 text-sm font-semibold">Results</h2>
+          {/* Bottom Analytics Area */}
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_1fr_380px]">
+            {/* Simulation Results */}
+            <div className="h-[400px]">
               <ResultsPanel result={result} step={step} />
             </div>
 
-            <div className="panel p-4">
-              <h2 className="mb-3 text-sm font-semibold">Example circuits</h2>
-              <div className="space-y-2">
-                {EXAMPLES.map((ex) => (
-                  <button
-                    key={ex.id}
-                    type="button"
-                    onClick={() => lab.loadExample(ex.id)}
-                    className="w-full rounded-md border border-border bg-surface-raised p-3 text-left transition-colors hover:border-primary/60"
-                  >
-                    <p className="text-sm font-medium">{ex.title}</p>
-                    <p className="text-xs text-muted-foreground">{ex.blurb}</p>
-                  </button>
-                ))}
-              </div>
+            {/* Bloch Spheres */}
+            <div className="h-[400px]">
+              <BlochSphereDisplay state={viewState} />
             </div>
-          </aside>
-        </div>
-      </main>
+
+            {/* Circuit Insights */}
+            <div className="h-[400px]">
+              <CircuitInsights circuitCode={lab.code} />
+            </div>
+          </div>
+
+        </main>
+      </div>
     </div>
   );
 }
