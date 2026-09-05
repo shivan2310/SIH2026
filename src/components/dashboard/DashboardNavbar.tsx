@@ -13,6 +13,21 @@ import {
 import { signOut } from "@/lib/auth/actions";
 import { useProfile, useSession } from "@/hooks/useSession";
 import { toast } from "sonner";
+import { useState, useEffect } from "react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { TRACKS, LESSONS } from "@/lib/learn/content";
 
 export function DashboardNavbar() {
   const { user } = useSession();
@@ -21,14 +36,25 @@ export function DashboardNavbar() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setSearchOpen((open) => !open);
+      }
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
   const name = profile?.displayName ?? user?.email ?? "Shivank";
   const initials = name.slice(0, 2).toUpperCase();
 
   const navItems = [
     { label: "Dashboard", to: "/dashboard" },
     { label: "Courses", to: "/learn" },
-    { label: "Schedule", to: "#" },
-    { label: "Assignments", to: "#" },
     { label: "Circuit Lab", to: "/lab" },
     { label: "Challenges", to: "/challenges" },
   ];
@@ -69,16 +95,57 @@ export function DashboardNavbar() {
 
         {/* Right: Actions and User */}
         <div className="flex items-center gap-5">
-          <button className="text-[#707070] hover:text-[#111111]">
-            <Search className="h-5 w-5" />
-          </button>
+          <Popover open={searchOpen} onOpenChange={setSearchOpen}>
+            <PopoverTrigger asChild>
+              <button
+                className="flex items-center gap-2 text-[#707070] hover:text-[#111111] transition-colors"
+              >
+                <Search className="h-5 w-5" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-0 bg-white border-[#E7E7E7] text-[#111111]" align="end">
+              <Command className="bg-white">
+                <CommandInput 
+                  placeholder="Search courses and lessons..." 
+                  className="text-[#111111] placeholder:text-[#707070]" 
+                />
+                <CommandList>
+                  <CommandEmpty className="py-6 text-center text-sm text-[#707070]">No results found.</CommandEmpty>
+                  {TRACKS.map((track) => (
+                    <CommandGroup 
+                      key={track.id} 
+                      heading={track.title}
+                      className="[&_[cmdk-group-heading]]:text-[#707070]"
+                    >
+                      {track.lessonIds.map((lessonId) => {
+                        const lesson = LESSONS.find((l) => l.id === lessonId);
+                        if (!lesson) return null;
+                        return (
+                          <CommandItem
+                            key={lesson.id}
+                            className="data-[selected=true]:bg-[#FFF0E6] data-[selected=true]:text-[#F47F45] text-[#111111] cursor-pointer"
+                            onSelect={() => {
+                              setSearchOpen(false);
+                              void navigate({ to: `/learn/${lesson.id}` });
+                            }}
+                          >
+                            {lesson.title}
+                          </CommandItem>
+                        );
+                      })}
+                    </CommandGroup>
+                  ))}
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
           
           <button className="relative text-[#707070] hover:text-[#111111]">
             <Bell className="h-5 w-5" />
             <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-[#F47F45] ring-2 ring-white"></span>
           </button>
 
-          {user && (
+          {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 rounded-full p-1 pl-2 hover:bg-gray-50 focus:outline-none">
@@ -113,6 +180,13 @@ export function DashboardNavbar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          ) : (
+            <Link
+              to="/auth"
+              className="rounded-full bg-[#F47F45] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#E56A2D]"
+            >
+              Sign In
+            </Link>
           )}
         </div>
       </div>

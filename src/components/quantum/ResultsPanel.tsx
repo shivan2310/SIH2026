@@ -14,7 +14,7 @@ function Histogram({ result }: { result: SimulationResult }) {
       {entries.map(([bits, count]) => (
         <div key={bits} className="flex items-center gap-4">
           <span className="w-16 shrink-0 font-mono text-sm font-bold text-[#111111]">
-            |{bits}âŸ©
+            |{bits}>
           </span>
           <div className="h-4 flex-1 overflow-hidden rounded-full bg-gray-100">
             <div
@@ -30,7 +30,7 @@ function Histogram({ result }: { result: SimulationResult }) {
         </div>
       ))}
       <p className="mt-4 font-mono text-xs text-[#707070] text-center border-t border-[#E5E7EB] pt-3">
-        {result.shots} shots Â· measured q[{result.measuredQubits.join("], q[")}]
+        {result.shots} shots · measured q[{result.measuredQubits.join("], q[")}]
       </p>
     </div>
   );
@@ -62,10 +62,10 @@ function Amplitudes({ state }: { state: StateVector }) {
         <tbody>
           {rows.map((r) => (
             <tr key={r.i} className="border-t border-[#E5E7EB] text-[#111111]">
-              <td className="py-2.5 pl-2 font-bold">|{basisLabel(r.i, state.numQubits)}âŸ©</td>
+              <td className="py-2.5 pl-2 font-bold">|{basisLabel(r.i, state.numQubits)}></td>
               <td>
                 {r.re.toFixed(3)}
-                {r.im >= 0 ? " + " : " âˆ’ "}
+                {r.im >= 0 ? " + " : " - "}
                 {Math.abs(r.im).toFixed(3)}i
               </td>
               <td className="font-semibold">{(r.p * 100).toFixed(2)}%</td>
@@ -76,7 +76,7 @@ function Amplitudes({ state }: { state: StateVector }) {
                     backgroundColor: `oklch(0.75 0.17 ${((r.phase * 180) / Math.PI + 360) % 360})`,
                   }}
                 />
-                {((r.phase * 180) / Math.PI).toFixed(0)}Â°
+                {((r.phase * 180) / Math.PI).toFixed(0)}°
               </td>
             </tr>
           ))}

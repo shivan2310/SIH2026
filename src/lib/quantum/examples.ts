@@ -12,7 +12,7 @@ export const EXAMPLES: ExampleCircuit[] = [
   {
     id: "superposition",
     title: "Single-qubit superposition",
-    blurb: "One Hadamard turns a definite |0⟩ into a 50/50 coin.",
+    blurb: "One Hadamard turns a definite |0> into a 50/50 coin.",
     code: `qreg q[1]
 
 h q[0]
@@ -64,7 +64,7 @@ measure q[2]
   {
     id: "grover",
     title: "Grover search (2 qubits)",
-    blurb: "One iteration finds the marked |11⟩ state with certainty.",
+    blurb: "One iteration finds the marked |11> state with certainty.",
     code: `qreg q[2]
 
 h q[0]

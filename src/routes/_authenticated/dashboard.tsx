@@ -11,7 +11,6 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { OverallProgress } from "@/components/dashboard/OverallProgress";
 import { ContinueLesson } from "@/components/dashboard/ContinueLesson";
 import { CalendarStudyTime } from "@/components/dashboard/CalendarStudyTime";
-import { UpcomingSchedule, ScheduleItem } from "@/components/dashboard/UpcomingSchedule";
 import { CourseProgress, CourseData } from "@/components/dashboard/CourseProgress";
 import { Mastery, MasteryItem } from "@/components/dashboard/Mastery";
 import { NextMilestone } from "@/components/dashboard/NextMilestone";
@@ -107,25 +106,7 @@ function DashboardPage() {
     if (a.created_at) activeDates.add(new Date(a.created_at).toISOString().slice(0, 10));
   });
 
-  // Upcoming Schedule from assignments
-  const scheduleData: ScheduleItem[] = assignments.map(a => {
-    let dateStr = "";
-    let timeStr = "";
-    if (a.due_at) {
-      const d = new Date(a.due_at);
-      dateStr = `${d.getDate()} ${d.toLocaleString('default', { month: 'short' })}`;
-      timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-    return {
-      id: a.id,
-      date: dateStr,
-      time: timeStr,
-      title: a.title,
-      itemType: a.item_type,
-      itemId: a.item_id
-    };
-  });
-
+  // Upcoming Schedule removed
   let milestoneTrack = activeTrack || TRACKS[0] || null;
   let milestoneCourse = courseData.find(c => c.id === milestoneTrack?.id);
   let lessonsAway = milestoneCourse ? milestoneCourse.total - milestoneCourse.completed : 0;
@@ -178,10 +159,7 @@ function DashboardPage() {
 
             {/* SECOND ROW */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-1">
-                <UpcomingSchedule schedule={scheduleData} />
-              </div>
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-3">
                 <CourseProgress courses={courseData} />
               </div>
             </div>
