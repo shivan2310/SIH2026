@@ -15,6 +15,7 @@ import { BlochSphereDisplay } from "@/components/quantum/BlochSphereDisplay";
 import { CircuitInsights } from "@/components/quantum/CircuitInsights";
 import { SaveCircuitPanel } from "@/components/quantum/SaveCircuitPanel";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
 export const Route = createFileRoute("/lab")({
   validateSearch: (
@@ -173,11 +174,11 @@ function LabPage() {
             </div>
           </div>
 
-          {/* Builder Area: 3 Columns */}
-          <div className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[280px_minmax(600px,_1fr)_380px]">
-            
-            {/* Left Col: Gate Palette */}
-            <div className="h-[550px] rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm">
+          {/* Builder Area: Gate Palette + Resizable Canvas & AI Panel */}
+          <div className="mb-6 flex gap-6 h-[550px]">
+
+            {/* Left Col: Gate Palette (fixed width) */}
+            <div className="w-[280px] shrink-0 rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm">
               <GatePalette
                 onPick={(def) =>
                   lab.placeGate(def.type, 0, circuitDepth(circuit))
@@ -185,29 +186,44 @@ function LabPage() {
               />
             </div>
 
-            {/* Center Col: Canvas */}
-            <div className="h-[550px]">
-              <CircuitCanvas
-                circuit={circuit}
-                selectedId={lab.selectedId}
-                onSelect={lab.setSelectedId}
-                onPlace={lab.placeGate}
-                onMove={lab.moveGate}
-                onDelete={lab.deleteGate}
-                activeColumn={result && step > 0 ? step - 1 : null}
-              />
-            </div>
+            {/* Resizable: Canvas + AI Tutor */}
+            <div className="flex-1 min-w-0">
+              <ResizablePanelGroup direction="horizontal" className="h-full">
+                {/* Circuit Canvas */}
+                <ResizablePanel defaultSize={65} minSize={30}>
+                  <div className="h-full pr-1">
+                    <CircuitCanvas
+                      circuit={circuit}
+                      selectedId={lab.selectedId}
+                      onSelect={lab.setSelectedId}
+                      onPlace={lab.placeGate}
+                      onMove={lab.moveGate}
+                      onDelete={lab.deleteGate}
+                      activeColumn={result && step > 0 ? step - 1 : null}
+                    />
+                  </div>
+                </ResizablePanel>
 
-            {/* Right Col: AI & Code */}
-            <div className="h-[550px]">
-              <LabRightSidebar
-                code={lab.code}
-                codeErrors={lab.codeErrors}
-                result={lab.result}
-                onCodeChange={lab.onCodeChange}
-                onCopyQiskit={copyQiskit}
-                onDownloadJson={downloadJson}
-              />
+                {/* Drag Handle */}
+                <ResizableHandle
+                  withHandle
+                  className="w-2 mx-1 rounded-full bg-[#E5E7EB] hover:bg-[#F47F45] transition-colors"
+                />
+
+                {/* AI Tutor & Code */}
+                <ResizablePanel defaultSize={35} minSize={20}>
+                  <div className="h-full pl-1">
+                    <LabRightSidebar
+                      code={lab.code}
+                      codeErrors={lab.codeErrors}
+                      result={lab.result}
+                      onCodeChange={lab.onCodeChange}
+                      onCopyQiskit={copyQiskit}
+                      onDownloadJson={downloadJson}
+                    />
+                  </div>
+                </ResizablePanel>
+              </ResizablePanelGroup>
             </div>
           </div>
 

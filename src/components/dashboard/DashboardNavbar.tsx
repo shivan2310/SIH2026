@@ -75,7 +75,7 @@ export function DashboardNavbar() {
           <Link to="/" className="flex items-center gap-2">
             <Atom className="h-6 w-6 text-[#111111]" />
             <span className="font-sans text-xl font-bold tracking-tight text-[#111111]">
-              Quantum<span className="text-[#F89864]">Lab</span>
+              Quantum<span className="text-[#111111]">Lab</span>
             </span>
           </Link>
 

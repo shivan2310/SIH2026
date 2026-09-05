@@ -80,7 +80,7 @@ function AuthPage() {
       <Link to="/" className="mb-10 flex items-center gap-2">
         <Atom className="h-8 w-8 text-[#111111]" />
         <span className="text-2xl font-bold tracking-tight text-[#111111]">
-          Quantum<span className="text-[#F47F45]">Lab</span>
+          Quantum<span className="text-[#111111]">Lab</span>
         </span>
       </Link>
 

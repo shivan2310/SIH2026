@@ -14,7 +14,7 @@ function Histogram({ result }: { result: SimulationResult }) {
       {entries.map(([bits, count]) => (
         <div key={bits} className="flex items-center gap-4">
           <span className="w-16 shrink-0 font-mono text-sm font-bold text-[#111111]">
-            |{bits}>
+            |{bits}&gt;
           </span>
           <div className="h-4 flex-1 overflow-hidden rounded-full bg-gray-100">
             <div
@@ -62,7 +62,7 @@ function Amplitudes({ state }: { state: StateVector }) {
         <tbody>
           {rows.map((r) => (
             <tr key={r.i} className="border-t border-[#E5E7EB] text-[#111111]">
-              <td className="py-2.5 pl-2 font-bold">|{basisLabel(r.i, state.numQubits)}></td>
+              <td className="py-2.5 pl-2 font-bold">|{basisLabel(r.i, state.numQubits)}&gt;</td>
               <td>
                 {r.re.toFixed(3)}
                 {r.im >= 0 ? " + " : " - "}

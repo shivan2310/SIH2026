@@ -79,7 +79,7 @@ export function CircuitCanvas({
               style={{ top: q * ROW_H + 24, left: 0, width: "100%", minWidth: width, height: ROW_H }}
             >
               <span className="w-[68px] shrink-0 pl-4 font-mono text-xs font-bold text-[#111111]">
-                q{q} <span className="text-[#707070] font-medium">|0></span>
+                q{q} <span className="text-[#707070] font-medium">|0&gt;</span>
               </span>
               <span
                 className="h-[2px] flex-1 bg-[#E5E7EB]"
@@ -140,13 +140,7 @@ export function CircuitCanvas({
             />
           ))}
 
-          {/* Minimap (mock representation as requested) */}
-          <div className="absolute bottom-4 right-4 h-24 w-32 rounded-lg border border-[#E5E7EB] bg-white/90 shadow-sm backdrop-blur-sm p-2 hidden lg:block">
-            <div className="w-full h-full border border-dashed border-[#E5E7EB] rounded relative">
-              <div className="absolute top-2 left-2 w-8 h-4 bg-[#F47F45]/20 rounded border border-[#F47F45]"></div>
-              <div className="absolute top-6 left-6 w-8 h-4 bg-[#20B486]/20 rounded border border-[#20B486]"></div>
-            </div>
-          </div>
+
         </div>
       </div>
     </div>
@@ -271,7 +265,7 @@ function GateNode({
               color: borderCol,
             }}
           >
-            âœ•
+            x
           </span>
         ))}
       </div>
@@ -280,7 +274,7 @@ function GateNode({
 
   const targetLabel =
     gate.type === "cx" || gate.type === "ccx"
-      ? "âŠ•"
+      ? "+"
       : gate.type === "cz"
         ? "Z"
         : gate.type === "measure"
