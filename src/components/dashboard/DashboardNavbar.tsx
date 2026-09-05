@@ -102,9 +102,7 @@ export function DashboardNavbar() {
                   </span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/circuits" className="cursor-pointer">My circuits</Link>
-                </DropdownMenuItem>
+                
                 {(profile?.role === "instructor" || profile?.role === "admin") && (
                   <DropdownMenuItem asChild>
                     <Link to="/instructor" className="cursor-pointer">Instructor</Link>
