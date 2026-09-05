@@ -2,19 +2,45 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAuth } from "@/lib/auth/server";
 import { buildQuantumContext, type ClientSimulationData } from "./context";
 import { parseCode } from "@/lib/quantum/code";
+import { db } from "@/lib/db/client";
 
-const MODEL = process.env["AI_MODEL"] || "gpt-oss:120b-cloud";
+if (typeof process.loadEnvFile === "function" && !process.env["OLLAMA_URL"]) {
+  try {
+    process.loadEnvFile();
+  } catch {
+    // ignore
+  }
+}
 
-interface ChatMessage {
+export interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
 
-async function callGateway(messages: ChatMessage[]): Promise<string> {
-  const ollamaUrl =
-    process.env["OLLAMA_URL"] || "http://localhost:11434";
+export async function callGateway(messages: ChatMessage[]): Promise<string> {
+  if (typeof process.loadEnvFile === "function" && !process.env["OLLAMA_URL"]) {
+    try {
+      process.loadEnvFile();
+    } catch {
+      // ignore
+    }
+  }
 
+  const rawUrl =
+    process.env["OLLAMA_URL"] ||
+    process.env["VITE_OLLAMA_URL"] ||
+    "http://localhost:11434";
+  const ollamaUrl = rawUrl.trim().replace(/\/+$/, "");
+  const model =
+    process.env["AI_MODEL"] ||
+    process.env["VITE_AI_MODEL"] ||
+    "gpt-oss:120b-cloud";
   const endpoint = `${ollamaUrl}/v1/chat/completions`;
+
+  console.log(`[AI DEBUG] OLLAMA_URL = ${ollamaUrl}`);
+  console.log(`[AI DEBUG] AI_MODEL = ${model}`);
+  console.log(`[AI DEBUG] endpoint = ${endpoint}`);
+  console.log(`[AI DEBUG] request started`);
 
   try {
     const res = await fetch(endpoint, {
@@ -23,15 +49,19 @@ async function callGateway(messages: ChatMessage[]): Promise<string> {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: MODEL,
+        model,
         messages,
         stream: false,
       }),
     });
 
+    console.log(`[AI DEBUG] response status = ${res.status}`);
+
     if (!res.ok) {
+      const errBody = await res.text();
+      console.error(`[AI DEBUG] response error = ${errBody}`);
       throw new Error(
-        `AI error (${res.status}): ${await res.text()}`,
+        `AI error (${res.status}): ${errBody}`,
       );
     }
 
@@ -43,6 +73,8 @@ async function callGateway(messages: ChatMessage[]): Promise<string> {
       }>;
     };
 
+    console.log(`[AI DEBUG] response received`);
+
     const content = json.choices?.[0]?.message?.content;
 
     if (!content) {
@@ -52,8 +84,10 @@ async function callGateway(messages: ChatMessage[]): Promise<string> {
     return content;
   } catch (error) {
     if (error instanceof TypeError && error.message.includes("fetch failed")) {
+      console.error(`[AI DEBUG] fetch failed = ${error.message}`);
       throw new Error("AI Tutor cannot reach the QuantumLab AI server. Check that the Ollama host is running and accessible.");
     }
+    console.error(`[AI DEBUG] error = ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }
 }
@@ -68,7 +102,7 @@ ccx q[0], q[1], q[2] # Toffoli: two controls then target
 measure q[0]
 No other syntax, no comments, no imports, no Python.`;
 
-const TUTOR_SYSTEM = `You are the AI Tutor inside QuantumLab, an interactive quantum-computing learning platform.
+export const TUTOR_SYSTEM = `You are the AI Tutor inside QuantumLab, an interactive quantum-computing learning platform.
 
 You are not a generic chatbot. Your job is to help the student understand quantum computing using the actual QuantumLab learning context, circuit, simulator results, and student level.
 
@@ -129,6 +163,7 @@ export const tutorChat = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .validator(
     (input: {
+      conversationId?: string | undefined;
       messages: Array<{
         role: "user" | "assistant";
         content: string;
@@ -139,7 +174,7 @@ export const tutorChat = createServerFn({ method: "POST" })
       lessonContext?: string | undefined;
     }) => input,
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const history = data.messages.slice(-12).map((m) => ({
       role: m.role,
       content: m.content.slice(0, 4000),
@@ -164,7 +199,42 @@ export const tutorChat = createServerFn({ method: "POST" })
       ...history,
     ]);
 
-    return { reply };
+    // Save to database
+    let conversationId = data.conversationId;
+    try {
+      const lastUserMsg =
+        data.messages.filter((m) => m.role === "user").slice(-1)[0]?.content ||
+        "Circuit Question";
+      if (!conversationId) {
+        conversationId = crypto.randomUUID();
+        const firstLine = lastUserMsg.split("\n")[0] ?? "";
+        const titleSnippet = firstLine.replace(/[#*`_~]/g, "").trim();
+        const title =
+          (titleSnippet.length > 32
+            ? titleSnippet.slice(0, 32) + "..."
+            : titleSnippet) || "Circuit Chat";
+        db.prepare(
+          "INSERT INTO ai_conversations (id, user_id, title) VALUES (?, ?, ?)"
+        ).run(conversationId, context.userId, `Circuit: ${title}`);
+      }
+      const userMsgId = crypto.randomUUID();
+      db.prepare(
+        "INSERT INTO ai_messages (id, conversation_id, role, content) VALUES (?, ?, 'user', ?)"
+      ).run(userMsgId, conversationId, lastUserMsg);
+
+      const assistantMsgId = crypto.randomUUID();
+      db.prepare(
+        "INSERT INTO ai_messages (id, conversation_id, role, content) VALUES (?, ?, 'assistant', ?)"
+      ).run(assistantMsgId, conversationId, reply);
+
+      db.prepare(
+        "UPDATE ai_conversations SET updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+      ).run(conversationId);
+    } catch (e) {
+      console.error("Failed to persist tutorChat to database:", e);
+    }
+
+    return { reply, conversationId };
   });
 
 
@@ -362,7 +432,7 @@ export const explainCircuit = createServerFn({ method: "POST" })
       simulation?: ClientSimulationData | undefined;
     }) => input,
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ context, data }) => {
     const reply = await callGateway([
       {
         role: "system",
@@ -385,6 +455,22 @@ ${buildQuantumContext({
 })}`,
       },
     ]);
+
+    // Save to database
+    try {
+      const conversationId = crypto.randomUUID();
+      db.prepare(
+        "INSERT INTO ai_conversations (id, user_id, title) VALUES (?, ?, ?)"
+      ).run(conversationId, context.userId, "Circuit: Explain circuit");
+      db.prepare(
+        "INSERT INTO ai_messages (id, conversation_id, role, content) VALUES (?, ?, 'user', ?)"
+      ).run(crypto.randomUUID(), conversationId, "Explain this circuit");
+      db.prepare(
+        "INSERT INTO ai_messages (id, conversation_id, role, content) VALUES (?, ?, 'assistant', ?)"
+      ).run(crypto.randomUUID(), conversationId, reply);
+    } catch (e) {
+      console.error("Failed to persist explainCircuit to database:", e);
+    }
 
     return {
       reply,

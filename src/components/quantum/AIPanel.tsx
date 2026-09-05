@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Send, Sparkles } from "lucide-react";
@@ -34,8 +34,14 @@ export function AIPanel({ code, result, onApplyCode }: Props) {
   const explain = useServerFn(explainCircuit);
 
   const [messages, setMessages] = useState<Msg[]>([]);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, thinking]);
 
   const SUGGESTIONS = [
     "Explain this circuit",
@@ -86,15 +92,17 @@ export function AIPanel({ code, result, onApplyCode }: Props) {
     setInput("");
     setThinking(true);
     try {
-      const { reply } = await chat({
+      const res = await chat({
         data: { 
+          conversationId: conversationId ?? undefined,
           messages: next, 
           circuitCode: code, 
           level: "intermediate",
           simulation: getSimData() 
         },
       });
-      setMessages([...next, { role: "assistant", content: reply }]);
+      if (res.conversationId) setConversationId(res.conversationId);
+      setMessages([...next, { role: "assistant", content: res.reply }]);
     } catch (e) {
       toast.error(errMessage(e));
       setMessages(next);
@@ -124,12 +132,30 @@ export function AIPanel({ code, result, onApplyCode }: Props) {
   }
 
   return (
-    <div className="flex h-full flex-col bg-white">
+    <div className="flex h-full min-h-0 flex-col bg-white">
+      {messages.length > 0 && (
+        <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#E5E7EB] shrink-0">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-[#111111]">
+            <Sparkles className="h-3.5 w-3.5 text-[#F47F45]" />
+            <span>Circuit AI Chat</span>
+          </div>
+          <button
+            onClick={() => {
+              setMessages([]);
+              setConversationId(null);
+            }}
+            className="text-[11px] font-semibold text-[#F47F45] hover:text-[#E3692E] bg-[#F47F45]/10 hover:bg-[#F47F45]/20 px-2 py-0.5 rounded transition-colors"
+          >
+            + New Chat
+          </button>
+        </div>
+      )}
+
       {messages.length === 0 ? (
-        <div className="flex flex-1 flex-col p-2">
+        <div className="flex flex-1 min-h-0 flex-col overflow-y-auto p-2">
           <h3 className="mb-2 text-base font-bold text-[#111111]">Hi! I'm your Quantum AI Tutor</h3>
           <p className="mb-6 text-sm font-medium text-[#707070] leading-relaxed">
-            Ask me anything â€” from gate explanations to debugging your circuit. I can also suggest experiments, explain results, and help you learn step by step.
+            Ask me anything — from gate explanations to debugging your circuit. I can also suggest experiments, explain results, and help you learn step by step.
           </p>
           
           <div className="flex flex-wrap gap-2">
@@ -146,7 +172,7 @@ export function AIPanel({ code, result, onApplyCode }: Props) {
           </div>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto p-2 space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto p-2 space-y-4">
           {messages.map((m, i) => (
             <div
               key={i}
@@ -175,11 +201,12 @@ export function AIPanel({ code, result, onApplyCode }: Props) {
               </div>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
       )}
 
       {/* Input Area */}
-      <div className="mt-4 pt-3 border-t border-[#E5E7EB]">
+      <div className="mt-3 pt-3 border-t border-[#E5E7EB] shrink-0">
         <div className="relative flex items-center">
           <input
             type="text"

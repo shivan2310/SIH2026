@@ -66,7 +66,7 @@ export const saveCircuit = createServerFn({ method: "POST" })
   .middleware([requireAuth])
   .validator(
     (input: {
-      id?: string;
+      id?: string | undefined;
       title: string;
       description: string | null;
       isPublic: boolean;

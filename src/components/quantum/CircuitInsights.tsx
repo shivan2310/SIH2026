@@ -34,15 +34,17 @@ export function CircuitInsights({ circuitCode, result }: { circuitCode: string, 
   }
 
   return (
-    <div className="flex flex-col rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm h-full">
-      <div className="mb-4 flex items-center gap-2">
-        <Sparkles className="h-5 w-5 text-[#F47F45]" />
-        <h2 className="text-lg font-bold text-[#111111]">Circuit Insights</h2>
+    <div className="flex h-full flex-col rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm overflow-hidden">
+      <div className="mb-4 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-[#F47F45]" />
+          <h2 className="text-lg font-bold text-[#111111]">Circuit Insights</h2>
+        </div>
       </div>
 
-      <div className="flex-1 flex flex-col justify-center">
+      <div className="flex-1 min-h-0 flex flex-col">
         {!analysis && !loading ? (
-          <div className="text-center">
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-2">
             <p className="text-sm font-medium text-[#707070] mb-4">
               Get AI-powered insights about entanglement, phase changes, and expected outcomes.
             </p>
@@ -54,35 +56,38 @@ export function CircuitInsights({ circuitCode, result }: { circuitCode: string, 
             </button>
           </div>
         ) : loading ? (
-          <div className="flex flex-col items-center justify-center space-y-3">
+          <div className="flex-1 flex flex-col items-center justify-center space-y-3">
             <Loader2 className="h-6 w-6 animate-spin text-[#F47F45]" />
             <span className="text-sm font-medium text-[#707070]">Analyzing...</span>
           </div>
         ) : (
-          <div className="flex flex-col h-full">
-            <p className="text-sm font-medium text-[#111111] leading-relaxed mb-4">
-              {analysis?.summary}
-            </p>
+          <div className="flex-1 min-h-0 flex flex-col">
+            <div className="flex-1 min-h-0 overflow-y-auto pr-2 space-y-4">
+              <p className="text-sm font-medium text-[#111111] leading-relaxed">
+                {analysis?.summary}
+              </p>
+              
+              <ul className="space-y-3 pb-2">
+                {analysis?.optimizations.map((opt, i) => (
+                  <li key={i} className="flex gap-3 text-sm">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#F47F45]" />
+                    <span className="text-[#707070] leading-relaxed">{opt}</span>
+                  </li>
+                ))}
+                {analysis?.issues.map((issue, i) => (
+                  <li key={`issue-${i}`} className="flex gap-3 text-sm">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF6680]" />
+                    <span className="text-[#707070] leading-relaxed">{issue.message}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
             
-            <ul className="space-y-3 mb-6">
-              {analysis?.optimizations.map((opt, i) => (
-                <li key={i} className="flex gap-3 text-sm">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#F47F45]" />
-                  <span className="text-[#707070]">{opt}</span>
-                </li>
-              ))}
-              {analysis?.issues.map((issue, i) => (
-                <li key={`issue-${i}`} className="flex gap-3 text-sm">
-                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#FF6680]" />
-                  <span className="text-[#707070]">{issue.message}</span>
-                </li>
-              ))}
-            </ul>
-            
-            <div className="mt-auto">
+            <div className="pt-3 mt-2 shrink-0 border-t border-[#E5E7EB]">
               <button
                 onClick={runAnalyze}
-                className="flex items-center gap-2 text-sm font-bold text-[#F47F45] hover:text-[#E3692E]"
+                disabled={loading}
+                className="flex items-center gap-2 text-sm font-bold text-[#F47F45] hover:text-[#E3692E] transition-colors disabled:opacity-50"
               >
                 Refresh Insights <ArrowRight className="h-4 w-4" />
               </button>
