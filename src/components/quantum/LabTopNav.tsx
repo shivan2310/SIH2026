@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { Search, Bell, ChevronDown } from "lucide-react";
+import { Search, ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useProfile, useSession } from "@/hooks/useSession";
+import { QuantumNewsPopover } from "@/components/dashboard/QuantumNewsPopover";
 
 export function LabTopNav() {
   const { user } = useSession();
@@ -47,10 +48,7 @@ export function LabTopNav() {
         </div>
 
         {/* Notifications */}
-        <button className="relative text-[#707070] hover:text-[#111111]">
-          <Bell className="h-5 w-5" />
-          <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[#FF6680] ring-2 ring-white" />
-        </button>
+        <QuantumNewsPopover />
 
         {/* User Profile */}
         {user && (

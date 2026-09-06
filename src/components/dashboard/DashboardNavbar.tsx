@@ -28,6 +28,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { TRACKS, LESSONS } from "@/lib/learn/content";
+import { QuantumNewsPopover } from "@/components/dashboard/QuantumNewsPopover";
 
 export function DashboardNavbar() {
   const { user } = useSession();
@@ -140,10 +141,7 @@ export function DashboardNavbar() {
             </PopoverContent>
           </Popover>
           
-          <button className="relative text-[#707070] hover:text-[#111111]">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-[#F47F45] ring-2 ring-white"></span>
-          </button>
+          <QuantumNewsPopover />
 
           {user ? (
             <DropdownMenu>
