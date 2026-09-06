@@ -102,22 +102,86 @@ export function InteractiveHeroText() {
       onMouseLeave={handleMouseLeave}
       className="relative w-full overflow-hidden bg-[#FAFAFA] select-none py-16"
     >
-      {/* FULL-WIDTH QUANTUM MECHANICS BACKGROUND IMAGE LAYER WITH 3D PARALLAX */}
+      {/* CONTINUOUSLY MOVING DYNAMIC QUANTUM MECHANICS BACKGROUND IMAGE LAYER */}
       <motion.div
         style={{
-          x: useTransform(springX, (val) => val * -0.6),
-          y: useTransform(springY, (val) => val * -0.6),
+          x: useTransform(springX, (val) => val * -0.8),
+          y: useTransform(springY, (val) => val * -0.8),
         }}
-        className="pointer-events-none absolute inset-0 z-0 overflow-hidden opacity-75 md:opacity-85"
+        className="pointer-events-none absolute inset-0 z-0 overflow-hidden opacity-90"
       >
-        <img
-          src="/quantum-bg.jpg"
-          alt="Quantum Mechanics Wavefunction & Atomic Orbits"
-          className="h-full w-full object-cover object-center scale-110 filter saturate-150 contrast-110"
-        />
-        {/* Soft edge blend & radial vignetting overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#FAFAFA]/30 via-transparent to-[#FAFAFA]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,#FAFAFA_85%)]" />
+        <motion.div
+          animate={{
+            x: [-45, 45, -45],
+            y: [-30, 30, -30],
+            scale: [1.12, 1.25, 1.12],
+            rotate: [-4, 4, -4],
+          }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute -inset-16 h-[calc(100%+8rem)] w-[calc(100%+8rem)]"
+        >
+          <img
+            src="/quantum-bg.jpg"
+            alt="Quantum Mechanics Wavefunction & Atomic Orbits"
+            className="h-full w-full object-cover object-center filter saturate-175 contrast-115 brightness-105"
+          />
+        </motion.div>
+
+        {/* Animated Rotating Quantum Orbit Rings */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+            className="h-[650px] w-[650px] rounded-full border-2 border-dashed border-orange-500/40"
+          />
+          <motion.div
+            animate={{ rotate: -360 }}
+            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+            className="absolute h-[480px] w-[480px] rounded-full border border-amber-400/50"
+          />
+          <motion.div
+            animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute h-[320px] w-[320px] rounded-full border-2 border-orange-400/60"
+          />
+        </div>
+
+        {/* Floating Moving Quantum Particle Orbs */}
+        {[
+          { top: "20%", left: "15%", size: "w-4 h-4", delay: 0, duration: 7, xDrift: 40, yDrift: -50 },
+          { top: "55%", left: "80%", size: "w-5 h-5", delay: 1.5, duration: 9, xDrift: -45, yDrift: -60 },
+          { top: "30%", left: "75%", size: "w-3 h-3", delay: 0.8, duration: 6, xDrift: 30, yDrift: -40 },
+          { top: "65%", left: "25%", size: "w-4.5 h-4.5", delay: 2.2, duration: 8, xDrift: -35, yDrift: -45 },
+          { top: "15%", left: "60%", size: "w-3.5 h-3.5", delay: 3, duration: 7.5, xDrift: 25, yDrift: -35 },
+          { top: "75%", left: "50%", size: "w-4 h-4", delay: 1, duration: 10, xDrift: 50, yDrift: -70 },
+          { top: "40%", left: "10%", size: "w-3 h-3", delay: 2, duration: 8.5, xDrift: -30, yDrift: -50 },
+        ].map((particle, i) => (
+          <motion.div
+            key={i}
+            className={`absolute ${particle.size} rounded-full bg-gradient-to-r from-orange-400 via-amber-400 to-orange-600 shadow-lg shadow-orange-500/60 opacity-90`}
+            style={{ top: particle.top, left: particle.left }}
+            animate={{
+              y: [0, particle.yDrift, 0],
+              x: [0, particle.xDrift, 0],
+              scale: [1, 1.5, 1],
+              opacity: [0.5, 1, 0.5],
+            }}
+            transition={{
+              duration: particle.duration,
+              repeat: Infinity,
+              delay: particle.delay,
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+
+        {/* Soft white gradient vignetting overlay for high text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#FAFAFA]/20 via-transparent to-[#FAFAFA]/90" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,#FAFAFA_90%)]" />
       </motion.div>
 
       {/* Background Interactive Floating Warm Radial Glow */}

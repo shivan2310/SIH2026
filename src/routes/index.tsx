@@ -92,20 +92,20 @@ function Home() {
                   y: -8,
                   scale: 1.03,
                   borderColor: "#F47F45",
-                  boxShadow: "0 20px 25px -5px rgba(244, 127, 69, 0.15), 0 8px 10px -6px rgba(244, 127, 69, 0.1)",
+                  boxShadow: "0 20px 25px -5px rgba(244, 127, 69, 0.2), 0 8px 10px -6px rgba(244, 127, 69, 0.15)",
                 }}
-                className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 relative overflow-hidden"
+                className="group rounded-2xl border border-orange-200/60 bg-white/85 backdrop-blur-md p-6 shadow-md transition-all duration-300 relative overflow-hidden"
               >
                 {/* Subtle warm orange top border highlight on hover */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-400 via-orange-500 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-orange-50 text-[#F47F45] transition-transform duration-300 group-hover:scale-110 group-hover:bg-[#F47F45] group-hover:text-white">
+                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100/80 text-[#F47F45] transition-transform duration-300 group-hover:scale-110 group-hover:bg-[#F47F45] group-hover:text-white shadow-xs">
                   <f.icon className="h-6 w-6 transition-colors" />
                 </div>
                 <h2 className="mb-2 text-lg font-bold text-[#111111] group-hover:text-[#EA580C] transition-colors">
                   {f.title}
                 </h2>
-                <p className="text-sm font-medium leading-relaxed text-[#666666]">
+                <p className="text-sm font-medium leading-relaxed text-[#555555]">
                   {f.body}
                 </p>
               </motion.article>
