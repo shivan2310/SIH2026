@@ -337,13 +337,18 @@ export function useCircuitLab() {
     setRunning(true);
     setRunError(null);
     try {
+      // Small simulated execution latency (350ms) so user perceives real computation
+      await new Promise((resolve) => setTimeout(resolve, 350));
       const backend = getBackend(backendId);
       const res = await backend.run(circuit, { shots, seed, trace: true });
       setResult(res);
       setStep(res.steps.length - 1);
+      return res;
     } catch (err) {
-      setRunError(err instanceof Error ? err.message : "Simulation failed.");
+      const msg = err instanceof Error ? err.message : "Simulation failed.";
+      setRunError(msg);
       setResult(null);
+      throw err;
     } finally {
       setRunning(false);
     }

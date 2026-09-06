@@ -3,10 +3,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getCircuit } from "@/lib/circuits/actions";
 import { toast } from "sonner";
 import { useCircuitLab } from "@/hooks/useCircuitLab";
+import { StudyLogProvider, useStudyLog } from "@/hooks/useStudyLog";
 import { circuitDepth, MAX_QUBITS, type QCircuit } from "@/lib/quantum/ir";
 import { circuitToQiskit } from "@/lib/quantum/code";
 
 import { DashboardNavbar } from "@/components/dashboard/DashboardNavbar";
+import { Play, Loader2, CheckCircle2, Trash2 } from "lucide-react";
 import { GatePalette } from "@/components/quantum/GatePalette";
 import { CircuitCanvas } from "@/components/quantum/CircuitCanvas";
 import { LabRightSidebar } from "@/components/quantum/LabRightSidebar";
@@ -39,8 +41,16 @@ export const Route = createFileRoute("/lab")({
       subtext="Initializing quantum wire canvas, gate palette & simulator engine"
     />
   ),
-  component: LabPage,
+  component: LabPageWrapper,
 });
+
+function LabPageWrapper() {
+  return (
+    <StudyLogProvider>
+      <LabPage />
+    </StudyLogProvider>
+  );
+}
 
 function LabPage() {
   const lab = useCircuitLab();
@@ -85,6 +95,32 @@ function LabPage() {
     redo,
   } = lab;
 
+  const { addEntry } = useStudyLog();
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  const handleRun = useCallback(async () => {
+    try {
+      const res = await lab.run();
+      // Log 5 minutes of study time per simulation run
+      const today = new Date().toISOString().slice(0, 10);
+      addEntry(today, 5);
+      toast.success(
+        `Simulation complete! Sampled ${res.shots} shots across ${circuit.numQubits} qubit${circuit.numQubits > 1 ? "s" : ""}.`,
+      );
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Simulation failed");
+    }
+  }, [lab, circuit.numQubits, addEntry]);
+
+  const handleClear = useCallback(() => {
+    if (circuit.gates.length === 0) return;
+    lab.clear();
+    toast.info("Circuit canvas cleared");
+  }, [circuit.gates.length, lab]);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const target = e.target as HTMLElement | null;
@@ -96,12 +132,12 @@ function LabPage() {
       }
       if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
         e.preventDefault();
-        void run();
+        void handleRun();
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [redo, run, undo]);
+  }, [redo, handleRun, undo]);
 
   const copyQiskit = useCallback(async () => {
     try {
@@ -149,9 +185,12 @@ function LabPage() {
             
             <div className="flex items-center gap-3">
               <button
-                onClick={lab.clear}
-                className="rounded-lg border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-semibold text-[#111111] transition-colors hover:bg-gray-50"
+                type="button"
+                onClick={handleClear}
+                disabled={circuit.gates.length === 0}
+                className="flex items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-white px-3 py-2 text-sm font-semibold text-[#111111] transition-colors hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 disabled:opacity-40 disabled:pointer-events-none shadow-xs"
               >
+                <Trash2 className="h-4 w-4 text-[#707070]" />
                 Clear
               </button>
               
@@ -175,11 +214,22 @@ function LabPage() {
               </Popover>
               
               <button
-                onClick={() => void run()}
+                type="button"
+                onClick={() => void handleRun()}
                 disabled={running}
-                className="rounded-lg bg-[#F47F45] px-6 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#E3692E] disabled:opacity-70"
+                className="flex items-center gap-2 rounded-lg bg-[#F47F45] px-6 py-2 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#E3692E] active:scale-[0.98] disabled:opacity-70 cursor-pointer disabled:cursor-not-allowed"
               >
-                {running ? "Simulating..." : "Run Simulation"}
+                {running ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Simulating...
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4 fill-current" />
+                    Run Simulation
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -193,6 +243,8 @@ function LabPage() {
                 onPick={(def) =>
                   lab.placeGate(def.type, 0, circuitDepth(circuit))
                 }
+                onAddQubit={lab.addQubit}
+                onLoadExample={lab.loadExample}
               />
             </div>
 
@@ -209,6 +261,7 @@ function LabPage() {
                       onPlace={lab.placeGate}
                       onMove={lab.moveGate}
                       onDelete={lab.deleteGate}
+                      onClear={handleClear}
                       activeColumn={result && step > 0 ? step - 1 : null}
                     />
                   </div>
@@ -237,11 +290,29 @@ function LabPage() {
             </div>
           </div>
 
+          {/* Bottom Analytics Area Header */}
+          <div ref={resultsRef} className="mb-4 flex flex-wrap items-center justify-between gap-3 pt-2 scroll-mt-6">
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-bold text-[#111111]">Simulation & Analytics</h2>
+              {result && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#20B486]/10 px-3 py-1 font-mono text-xs font-bold text-[#20B486] border border-[#20B486]/20">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Synced ({result.shots} shots • {result.durationMs ? result.durationMs.toFixed(1) : "0.5"}ms)
+                </span>
+              )}
+            </div>
+            {result && (
+              <span className="text-xs font-medium text-[#707070]">
+                Engine: <strong className="text-[#111111]">Browser Statevector (Local)</strong>
+              </span>
+            )}
+          </div>
+
           {/* Bottom Analytics Area */}
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_1fr_380px]">
             {/* Simulation Results */}
             <div className="h-[400px] min-h-0">
-              <ResultsPanel result={result} step={step} />
+              <ResultsPanel result={result} step={step} shots={lab.shots} onShotsChange={lab.setShots} />
             </div>
 
             {/* Bloch Spheres */}

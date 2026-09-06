@@ -3,7 +3,7 @@ import { GATES } from "@/lib/quantum/gates";
 import { formatAngle } from "@/lib/quantum/code";
 import { circuitDepth, qubitsOf, type GateInstance, type GateType, type QCircuit } from "@/lib/quantum/ir";
 import { cn } from "@/lib/utils";
-import { X, ZoomIn, ZoomOut, MoreHorizontal } from "lucide-react";
+import { X, ZoomIn, ZoomOut, MoreHorizontal, Trash2 } from "lucide-react";
 
 const COL_W = 64;
 const ROW_H = 60;
@@ -16,6 +16,7 @@ interface Props {
   onPlace: (type: GateType, qubit: number, column: number) => void;
   onMove: (id: string, qubit: number, column: number) => void;
   onDelete: (id: string) => void;
+  onClear?: () => void;
   activeColumn?: number | null;
 }
 
@@ -26,6 +27,7 @@ export function CircuitCanvas({
   onPlace,
   onMove,
   onDelete,
+  onClear,
   activeColumn = null,
 }: Props) {
   const [hover, setHover] = useState<{ q: number; c: number } | null>(null);
@@ -61,6 +63,18 @@ export function CircuitCanvas({
           <p className="text-xs font-medium text-[#707070]">{circuit.numQubits} qubits · Drag gates between qubit lines to edit</p>
         </div>
         <div className="flex items-center gap-2">
+          {onClear && (
+            <button
+              type="button"
+              onClick={onClear}
+              disabled={circuit.gates.length === 0}
+              className="flex h-8 items-center gap-1.5 rounded-lg border border-[#E5E7EB] bg-white px-2.5 text-xs font-semibold text-[#707070] transition-colors hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 disabled:opacity-40 disabled:pointer-events-none"
+              title="Clear all gates from canvas"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>Clear Canvas</span>
+            </button>
+          )}
           <button className="flex h-8 w-8 items-center justify-center rounded-lg text-[#707070] hover:bg-gray-200 hover:text-[#111111]">
             <ZoomOut className="h-4 w-4" />
           </button>

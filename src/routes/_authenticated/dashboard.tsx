@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useSession } from "@/hooks/useSession";
 import { useProgress } from "@/hooks/useProgress";
 import { getAssignments } from "@/lib/cohorts/actions";
 import { LESSONS, TRACKS, lessonsOfTrack, type Track } from "@/lib/learn/content";
+import { StudyLogProvider, useStudyLog } from "@/hooks/useStudyLog";
 // New Dashboard Components
 import { DashboardNavbar } from "@/components/dashboard/DashboardNavbar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
@@ -29,10 +29,19 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       subtext="Gathering quantum metrics, study stats & progress tracking"
     />
   ),
-  component: DashboardPage,
+  component: DashboardPageWrapper,
 });
 
+function DashboardPageWrapper() {
+  return (
+    <StudyLogProvider>
+      <DashboardPage />
+    </StudyLogProvider>
+  );
+}
+
 function DashboardPage() {
+  const { activeDates: studyLogDates } = useStudyLog();
   const { user } = useSession();
   const progress = useProgress(user?.id);
   const [assignments, setAssignments] = useState<any[]>([]);
@@ -105,14 +114,17 @@ function DashboardPage() {
     }
   }
 
-  // Active Dates for Calendar
-  const activeDates = new Set<string>();
-  progress.lessons.forEach(l => {
-    if (l.updated_at) activeDates.add(new Date(l.updated_at).toISOString().slice(0, 10));
-  });
-  progress.attempts.forEach(a => {
-    if (a.created_at) activeDates.add(new Date(a.created_at).toISOString().slice(0, 10));
-  });
+  // Active Dates for Calendar – merge lesson/attempt dates with study-log dates
+  const activeDates = useMemo(() => {
+    const dates = new Set<string>(studyLogDates);
+    progress.lessons.forEach(l => {
+      if (l.updated_at) dates.add(new Date(l.updated_at).toISOString().slice(0, 10));
+    });
+    progress.attempts.forEach(a => {
+      if (a.created_at) dates.add(new Date(a.created_at).toISOString().slice(0, 10));
+    });
+    return dates;
+  }, [studyLogDates, progress.lessons, progress.attempts]);
 
   // Upcoming Schedule removed
   let milestoneTrack = activeTrack || TRACKS[0] || null;

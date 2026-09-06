@@ -1,22 +1,13 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, ArrowLeft, Clock, Calendar as CalendarIcon, CheckCircle2, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowLeft, Clock, Calendar as CalendarIcon, CheckCircle2, Sparkles, Trash2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useStudyLog } from "@/hooks/useStudyLog";
 
 export interface CalendarStudyTimeProps {
   activeDates: Set<string>; // YYYY-MM-DD
 }
 
-function getStudyTimeForDate(dateStr: string, isActive: boolean, isFuture: boolean) {
-  if (!isActive || isFuture) {
-    return { hours: 0, minutes: 0, totalHoursNum: 0, formatted: "0h 00m" };
-  }
-  let hash = 0;
-  for (let i = 0; i < dateStr.length; i++) {
-    hash = (hash << 5) - hash + dateStr.charCodeAt(i);
-    hash |= 0;
-  }
-  const minutesList = [45, 75, 90, 105, 120, 135, 150]; // 45m to 2.5h
-  const totalMins = minutesList[Math.abs(hash) % minutesList.length] ?? 90;
+function makeStudyInfo(totalMins: number) {
   const hrs = Math.floor(totalMins / 60);
   const mins = totalMins % 60;
   return {
@@ -30,6 +21,10 @@ function getStudyTimeForDate(dateStr: string, isActive: boolean, isFuture: boole
 export function CalendarStudyTime({ activeDates }: CalendarStudyTimeProps) {
   const [activeTab, setActiveTab] = useState<"calendar" | "time">("calendar");
   const [selectedDateStr, setSelectedDateStr] = useState<string | null>(null);
+  const { activeDates: logDates, clearAll } = useStudyLog();
+
+  // Merge prop activeDates (lesson/attempt days) with logged study days
+  const mergedActiveDates = new Set([...activeDates, ...logDates]);
 
   const handleSelectDate = (dateStr: string) => {
     setSelectedDateStr(dateStr);
@@ -39,35 +34,44 @@ export function CalendarStudyTime({ activeDates }: CalendarStudyTimeProps) {
   return (
     <div className="flex h-full flex-col rounded-2xl border border-[#E7E7E7] bg-white p-6 shadow-sm">
       {/* Segmented Control */}
-      <div className="mb-4 flex rounded-lg bg-[#F5F5F5] p-1">
+      <div className="mb-4 flex items-center gap-2">
+        <div className="flex flex-1 rounded-lg bg-[#F5F5F5] p-1">
+          <button
+            onClick={() => setActiveTab("calendar")}
+            className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-all ${
+              activeTab === "calendar"
+                ? "bg-white text-[#111111] shadow-sm"
+                : "text-[#707070] hover:text-[#111111]"
+            }`}
+          >
+            Study Calendar
+          </button>
+          <button
+            onClick={() => setActiveTab("time")}
+            className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-all ${
+              activeTab === "time"
+                ? "bg-white text-[#111111] shadow-sm"
+                : "text-[#707070] hover:text-[#111111]"
+            }`}
+          >
+            Study Time
+          </button>
+        </div>
         <button
-          onClick={() => setActiveTab("calendar")}
-          className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-all ${
-            activeTab === "calendar"
-              ? "bg-white text-[#111111] shadow-sm"
-              : "text-[#707070] hover:text-[#111111]"
-          }`}
+          onClick={() => { if (confirm("Clear all study log data?")) clearAll(); }}
+          title="Clear study log"
+          className="rounded p-1.5 text-[#707070] transition-colors hover:bg-red-50 hover:text-red-500"
         >
-          Study Calendar
-        </button>
-        <button
-          onClick={() => setActiveTab("time")}
-          className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-all ${
-            activeTab === "time"
-              ? "bg-white text-[#111111] shadow-sm"
-              : "text-[#707070] hover:text-[#111111]"
-          }`}
-        >
-          Study Time
+          <Trash2 className="h-3.5 w-3.5" />
         </button>
       </div>
 
       <div className="flex-1">
         {activeTab === "calendar" ? (
-          <CalendarView activeDates={activeDates} onSelectDate={handleSelectDate} />
+          <CalendarView activeDates={mergedActiveDates} onSelectDate={handleSelectDate} />
         ) : (
           <StudyTimeView
-            activeDates={activeDates}
+            activeDates={mergedActiveDates}
             selectedDateStr={selectedDateStr}
             onBackToCalendar={() => setActiveTab("calendar")}
           />
@@ -198,6 +202,13 @@ function StudyTimeView({
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const { getEntry } = useStudyLog();
+
+  const getStudyInfo = (dateStr: string, isActive: boolean, isFuture: boolean) => {
+    if (!isActive || isFuture) return makeStudyInfo(0);
+    const mins = getEntry(dateStr);
+    return makeStudyInfo(mins);
+  };
 
   // Parse target date
   const targetDate = selectedDateStr ? new Date(`${selectedDateStr}T00:00:00`) : now;
@@ -208,7 +219,7 @@ function StudyTimeView({
     : activeDates.has(now.toISOString().slice(0, 10));
   const dateStrForCalculation = selectedDateStr || now.toISOString().slice(0, 10);
 
-  const studyInfo = getStudyTimeForDate(dateStrForCalculation, isSelectedActive, isFuture);
+  const studyInfo = getStudyInfo(dateStrForCalculation, isSelectedActive, isFuture);
 
   // Formatted title date string
   const formattedTitleDate = targetDate.toLocaleDateString("en-US", {
@@ -229,7 +240,7 @@ function StudyTimeView({
     const checkCellDate = new Date(checkDate.getFullYear(), checkDate.getMonth(), checkDate.getDate());
     const isCellFuture = checkCellDate.getTime() > todayStart.getTime();
     const isActive = activeDates.has(dateString);
-    const dayInfo = getStudyTimeForDate(dateString, isActive, isCellFuture);
+    const dayInfo = getStudyInfo(dateString, isActive, isCellFuture);
 
     const isSelectedDay = selectedDateStr === dateString;
     const height =

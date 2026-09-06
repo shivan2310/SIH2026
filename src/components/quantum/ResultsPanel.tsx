@@ -97,17 +97,37 @@ function Empty({ text }: { text: string }) {
 export function ResultsPanel({
   result,
   step,
+  shots = 1024,
+  onShotsChange,
 }: {
   result: SimulationResult | null;
   step: number;
+  shots?: number;
+  onShotsChange?: (shots: number) => void;
 }) {
   const [activeTab, setActiveTab] = useState<"probability" | "statevector" | "density">("probability");
 
   if (!result) {
     return (
-      <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm h-full">
-        <h2 className="mb-4 text-lg font-bold text-[#111111]">Simulation Results</h2>
-        <Empty text="No results yet â€” press Run Simulation to start." />
+      <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm h-full flex flex-col justify-between">
+        <div>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-[#111111]">Simulation Results</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-[#707070]">Shots:</span>
+              <select
+                value={shots}
+                onChange={(e) => onShotsChange?.(Number(e.target.value))}
+                className="rounded-lg border border-[#E5E7EB] bg-gray-50 px-3 py-1.5 text-xs font-bold text-[#111111] outline-none cursor-pointer"
+              >
+                <option value={1024}>1024</option>
+                <option value={2048}>2048</option>
+                <option value={4096}>4096</option>
+              </select>
+            </div>
+          </div>
+          <Empty text="No results yet — press 'Run Simulation' above to calculate probabilities & statevectors." />
+        </div>
       </div>
     );
   }
@@ -120,10 +140,14 @@ export function ResultsPanel({
         <h2 className="text-lg font-bold text-[#111111]">Simulation Results</h2>
         <div className="flex items-center gap-3">
           <span className="text-xs font-semibold text-[#707070]">Shots:</span>
-          <select className="rounded-lg border border-[#E5E7EB] bg-gray-50 px-3 py-1.5 text-xs font-bold text-[#111111] outline-none">
-            <option>1024</option>
-            <option>2048</option>
-            <option>4096</option>
+          <select
+            value={shots}
+            onChange={(e) => onShotsChange?.(Number(e.target.value))}
+            className="rounded-lg border border-[#E5E7EB] bg-gray-50 px-3 py-1.5 text-xs font-bold text-[#111111] outline-none cursor-pointer hover:bg-gray-100"
+          >
+            <option value={1024}>1024</option>
+            <option value={2048}>2048</option>
+            <option value={4096}>4096</option>
           </select>
         </div>
       </div>
