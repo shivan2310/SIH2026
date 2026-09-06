@@ -29,6 +29,7 @@ export function CircuitCanvas({
   activeColumn = null,
 }: Props) {
   const [hover, setHover] = useState<{ q: number; c: number } | null>(null);
+
   const columns = Math.max(circuitDepth(circuit) + 2, 8);
   const width = LABEL_W + columns * COL_W;
   const height = circuit.numQubits * ROW_H;
@@ -36,11 +37,17 @@ export function CircuitCanvas({
   function handleDrop(e: React.DragEvent, qubit: number, column: number) {
     e.preventDefault();
     setHover(null);
-    const moveId = e.dataTransfer.getData("application/x-gate-id");
-    if (moveId) {
+
+    // 1. Move existing gate to this qubit line and column
+    const moveId =
+      e.dataTransfer.getData("application/x-gate-id") ||
+      e.dataTransfer.getData("text/plain");
+    if (moveId && circuit.gates.some((g) => g.id === moveId)) {
       onMove(moveId, qubit, column);
       return;
     }
+
+    // 2. Place new gate from palette
     const type = e.dataTransfer.getData("application/x-gate") as GateType;
     if (type && GATES[type]) onPlace(type, qubit, column);
   }
@@ -51,7 +58,7 @@ export function CircuitCanvas({
       <div className="flex items-center justify-between border-b border-[#E5E7EB] bg-gray-50 px-4 py-3">
         <div>
           <h3 className="text-sm font-bold text-[#111111]">Circuit Canvas</h3>
-          <p className="text-xs font-medium text-[#707070]">{circuit.numQubits} qubits Â· Drag gates, connect, and simulate</p>
+          <p className="text-xs font-medium text-[#707070]">{circuit.numQubits} qubits · Drag gates between qubit lines to edit</p>
         </div>
         <div className="flex items-center gap-2">
           <button className="flex h-8 w-8 items-center justify-center rounded-lg text-[#707070] hover:bg-gray-200 hover:text-[#111111]">
@@ -75,15 +82,13 @@ export function CircuitCanvas({
           {Array.from({ length: circuit.numQubits }).map((_, q) => (
             <div
               key={q}
-              className="absolute flex items-center"
+              className="absolute flex items-center pointer-events-none"
               style={{ top: q * ROW_H + 24, left: 0, width: "100%", minWidth: width, height: ROW_H }}
             >
               <span className="w-[68px] shrink-0 pl-4 font-mono text-xs font-bold text-[#111111]">
                 q{q} <span className="text-[#707070] font-medium">|0&gt;</span>
               </span>
-              <span
-                className="h-[2px] flex-1 bg-[#E5E7EB]"
-              />
+              <span className="h-[2px] flex-1 bg-[#E5E7EB]" />
             </div>
           ))}
 
@@ -100,32 +105,41 @@ export function CircuitCanvas({
             />
           )}
 
-          {/* drop cells */}
+          {/* drop cells - full coverage across every wire & column */}
           {Array.from({ length: circuit.numQubits }).map((_, q) =>
             Array.from({ length: columns }).map((__, c) => (
               <div
                 key={`${q}-${c}`}
                 onDragOver={(e) => {
                   e.preventDefault();
-                  e.dataTransfer.dropEffect = "copy";
-                  setHover({ q, c });
+                  e.dataTransfer.dropEffect = "move";
+                  if (hover?.q !== q || hover?.c !== c) {
+                    setHover({ q, c });
+                  }
                 }}
-                onDragLeave={() => setHover((h) => (h?.q === q && h.c === c ? null : h))}
+                onDragLeave={(e) => {
+                  if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                  setHover((h) => (h?.q === q && h.c === c ? null : h));
+                }}
                 onDrop={(e) => handleDrop(e, q, c)}
                 onClick={() => onSelect(null)}
-                className={cn(
-                  "absolute rounded-lg transition-all",
-                  hover?.q === q && hover.c === c
-                    ? "bg-[#F47F45]/20 ring-2 ring-[#F47F45]/40"
-                    : "bg-transparent",
-                )}
+                className="absolute z-10"
                 style={{
-                  left: LABEL_W + c * COL_W + 6,
-                  top: q * ROW_H + 24 + 6,
-                  width: COL_W - 12,
-                  height: ROW_H - 12,
+                  left: LABEL_W + c * COL_W,
+                  top: q * ROW_H + 24,
+                  width: COL_W,
+                  height: ROW_H,
                 }}
-              />
+              >
+                <div
+                  className={cn(
+                    "m-1 h-[calc(100%-8px)] w-[calc(100%-8px)] rounded-lg transition-all pointer-events-none",
+                    hover?.q === q && hover.c === c
+                      ? "bg-[#F47F45]/20 ring-2 ring-[#F47F45] border border-[#F47F45]/50 scale-105"
+                      : "bg-transparent",
+                  )}
+                />
+              </div>
             )),
           )}
 
@@ -137,9 +151,10 @@ export function CircuitCanvas({
               selected={selectedId === gate.id}
               onSelect={onSelect}
               onDelete={onDelete}
+              handleDrop={handleDrop}
+              setHover={setHover}
             />
           ))}
-
 
         </div>
       </div>
@@ -152,12 +167,17 @@ function GateNode({
   selected,
   onSelect,
   onDelete,
+  handleDrop,
+  setHover,
 }: {
   gate: GateInstance;
   selected: boolean;
   onSelect: (id: string | null) => void;
   onDelete: (id: string) => void;
+  handleDrop: (e: React.DragEvent, qubit: number, column: number) => void;
+  setHover: (hover: { q: number; c: number } | null) => void;
 }) {
+  const [isSelfDragging, setIsSelfDragging] = useState(false);
   const def = GATES[gate.type];
   const qs = qubitsOf(gate);
   const lo = Math.min(...qs);
@@ -171,7 +191,11 @@ function GateNode({
 
   const wrapper = (children: React.ReactNode) => (
     <div
-      className="absolute"
+      className={cn(
+        "absolute z-20 cursor-grab active:cursor-grabbing select-none transition-opacity",
+        selected && "z-30",
+        isSelfDragging && "opacity-40 scale-95",
+      )}
       style={{
         left: x - COL_W / 2,
         top: lo * ROW_H + 24,
@@ -180,8 +204,24 @@ function GateNode({
       }}
       draggable
       onDragStart={(e) => {
+        setIsSelfDragging(true);
         e.dataTransfer.setData("application/x-gate-id", gate.id);
-        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", gate.id);
+        e.dataTransfer.effectAllowed = "all";
+      }}
+      onDragEnd={() => {
+        setIsSelfDragging(false);
+        setHover(null);
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        setHover({ q: lo, c: gate.column });
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleDrop(e, lo, gate.column);
       }}
       onClick={(e) => {
         e.stopPropagation();

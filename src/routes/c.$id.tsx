@@ -113,7 +113,7 @@ function SharedCircuitPage() {
 
             <div className="panel p-4">
               <h2 className="mb-3 text-sm font-semibold">Circuit code</h2>
-              <pre className="overflow-auto rounded-md bg-surface-raised p-3 font-mono text-xs text-muted-foreground">
+              <pre className="overflow-auto rounded-xl border border-slate-800 bg-[#0c1322] p-4 font-mono text-xs font-medium text-slate-100">
                 {circuitToCode(row.data)}
               </pre>
             </div>

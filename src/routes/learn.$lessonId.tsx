@@ -77,13 +77,16 @@ function LessonPage() {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [checked, setChecked] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [justCompleted, setJustCompleted] = useState(false);
 
   useEffect(() => {
     setAnswers({});
     setChecked(false);
+    setJustCompleted(false);
   }, [lesson.id]);
 
   const record = lessons.find((l) => l.lesson_id === lesson.id);
+  const isCompleted = Boolean(record?.completed || justCompleted);
   const score = lesson.quiz.filter((q) => answers[q.id] === q.answer).length;
   const allAnswered = lesson.quiz.every((q) => answers[q.id] !== undefined);
 
@@ -101,8 +104,9 @@ function LessonPage() {
         quizScore: score,
         quizTotal: lesson.quiz.length,
       });
+      setJustCompleted(true);
       await reload();
-      toast.success("Lesson marked complete");
+      toast.success("Lesson marked as complete");
     } catch {
       toast.error("Couldn't save your progress");
     } finally {
@@ -124,9 +128,9 @@ function LessonPage() {
         <header className="mb-8">
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-3xl font-bold tracking-tight text-[#111111]">{lesson.title}</h1>
-            {record?.completed && (
-              <Badge className="font-mono text-[0.7rem] bg-[#F47F45]/10 text-[#F47F45] border border-[#F47F45]/20 font-bold">
-                completed
+            {isCompleted && (
+              <Badge className="font-mono text-[0.7rem] bg-[#20B486]/10 text-[#20B486] border border-[#20B486]/30 font-bold flex items-center gap-1">
+                <CheckCircle2 className="h-3 w-3" /> completed
               </Badge>
             )}
           </div>
@@ -214,13 +218,25 @@ function LessonPage() {
                 /{lesson.quiz.length} correct
               </span>
             )}
-            <button
-              className="ml-auto rounded-lg bg-[#F47F45] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#E3692E] disabled:opacity-70"
-              onClick={() => void complete()}
-              disabled={saving}
-            >
-              {record?.completed ? "Update progress" : "Mark complete"}
-            </button>
+            {isCompleted ? (
+              <button
+                type="button"
+                disabled
+                className="ml-auto flex items-center gap-2 rounded-lg bg-[#20B486] px-6 py-2.5 text-sm font-bold text-white shadow-sm cursor-default select-none pointer-events-none transition-all"
+              >
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                Marked as complete
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="ml-auto flex items-center gap-2 rounded-lg bg-[#F47F45] px-6 py-2.5 text-sm font-bold text-white transition-all hover:bg-[#E3692E] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed shadow-sm"
+                onClick={() => void complete()}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Mark complete"}
+              </button>
+            )}
           </div>
         </section>
 

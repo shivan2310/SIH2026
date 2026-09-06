@@ -1,9 +1,61 @@
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform, type Variants } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { Sparkles, Atom, Zap } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 const ROTATING_WORDS = ["qubits.", "circuits.", "statevectors.", "algorithms."];
+
+const letterVariants: Variants = {
+  rest: {
+    y: 0,
+    scale: 1,
+    rotate: 0,
+    color: "#111111",
+    transition: {
+      type: "spring",
+      stiffness: 450,
+      damping: 16,
+      mass: 0.8,
+    },
+  },
+  hover: (i: number) => ({
+    y: -18,
+    scale: 1.25,
+    rotate: (i % 2 === 0 ? -1 : 1) * 8,
+    color: "#EA580C",
+    transition: {
+      type: "spring",
+      stiffness: 600,
+      damping: 8,
+      mass: 0.6,
+    },
+  }),
+};
+
+const themCharVariants: Variants = {
+  rest: {
+    y: 0,
+    scale: 1,
+    rotate: 0,
+    transition: {
+      type: "spring",
+      stiffness: 450,
+      damping: 16,
+      mass: 0.8,
+    },
+  },
+  hover: (i: number) => ({
+    y: -20,
+    scale: 1.3,
+    rotate: (i % 2 === 0 ? 1 : -1) * 10,
+    transition: {
+      type: "spring",
+      stiffness: 600,
+      damping: 8,
+      mass: 0.6,
+    },
+  }),
+};
 
 export function InteractiveHeroText() {
   const [wordIndex, setWordIndex] = useState(0);
@@ -56,7 +108,7 @@ export function InteractiveHeroText() {
           x: useTransform(springX, (val) => val * -0.6),
           y: useTransform(springY, (val) => val * -0.6),
         }}
-        className="pointer-events-none absolute inset-0 z-0 overflow-hidden opacity-75 md:opacity-85 transition-all duration-300"
+        className="pointer-events-none absolute inset-0 z-0 overflow-hidden opacity-75 md:opacity-85"
       >
         <img
           src="/quantum-bg.jpg"
@@ -100,14 +152,12 @@ export function InteractiveHeroText() {
             {line1Text.split("").map((char, index) => (
               <motion.span
                 key={index}
-                className="inline-block transition-colors duration-200 hover:text-orange-600 cursor-pointer"
-                whileHover={{
-                  y: -12,
-                  scale: 1.15,
-                  rotate: (index % 2 === 0 ? 1 : -1) * 8,
-                  color: "#EA580C",
-                }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                custom={index}
+                variants={letterVariants}
+                initial="rest"
+                animate="rest"
+                whileHover="hover"
+                className="inline-block cursor-pointer select-none font-black"
               >
                 {char === " " ? "\u00A0" : char}
               </motion.span>
@@ -122,7 +172,7 @@ export function InteractiveHeroText() {
               animate={{ y: 0, opacity: 1, rotateX: 0 }}
               exit={{ y: -50, opacity: 0, rotateX: 90 }}
               transition={{ duration: 0.5, ease: "backOut" }}
-              className="inline-block bg-gradient-to-r from-[#FF8C42] via-[#F47F45] to-[#EA580C] bg-clip-text text-transparent underline decoration-orange-300/40 decoration-wavy underline-offset-8"
+              className="inline-block bg-gradient-to-r from-[#FF8C42] via-[#F47F45] to-[#EA580C] bg-clip-text text-transparent"
             >
               {ROTATING_WORDS[wordIndex]}
             </motion.span>
@@ -131,56 +181,40 @@ export function InteractiveHeroText() {
           <br />
 
           {/* Line 2: Start moving them. */}
-          <motion.div
-            style={{ x: useTransform(springX, (val) => val * -0.4) }}
-            className="mt-2 inline-block font-black"
-          >
+          <div className="mt-2 inline-block font-black">
             <span className="inline-block text-[#111111]">
               {line2Start.split("").map((char, index) => (
                 <motion.span
                   key={`l2-${index}`}
-                  className="inline-block cursor-pointer hover:text-orange-600"
-                  whileHover={{
-                    y: -14,
-                    scale: 1.2,
-                    rotate: (index % 2 === 0 ? -1 : 1) * 10,
-                    color: "#EA580C",
-                  }}
-                  transition={{ type: "spring", stiffness: 450, damping: 12 }}
+                  custom={index}
+                  variants={letterVariants}
+                  initial="rest"
+                  animate="rest"
+                  whileHover="hover"
+                  className="inline-block cursor-pointer select-none font-black"
                 >
                   {char === " " ? "\u00A0" : char}
                 </motion.span>
               ))}
             </span>
 
-            {/* Glowing Animated Warm Orange Kinetic Floating Text "them." */}
-            <span className="relative inline-flex items-center text-[#F47F45]">
+            {/* Glowing Animated Warm Orange Kinetic Text "them." */}
+            <span className="relative inline-flex items-center">
               {"them.".split("").map((char, index) => (
                 <motion.span
                   key={`them-${index}`}
-                  className="inline-block bg-gradient-to-r from-[#FF7A00] via-[#F47F45] to-[#DC2626] bg-clip-text text-transparent cursor-pointer font-black drop-shadow-sm"
-                  animate={{
-                    y: [0, -7, 0],
-                    scale: [1, 1.06, 1],
-                  }}
-                  transition={{
-                    duration: 2.2,
-                    repeat: Infinity,
-                    delay: index * 0.15,
-                    ease: "easeInOut",
-                  }}
-                  whileHover={{
-                    y: -18,
-                    scale: 1.3,
-                    rotate: [0, 12, -12, 0],
-                    color: "#EA580C",
-                  }}
+                  custom={index}
+                  variants={themCharVariants}
+                  initial="rest"
+                  animate="rest"
+                  whileHover="hover"
+                  className="inline-block bg-gradient-to-r from-[#FF7A00] via-[#F47F45] to-[#DC2626] bg-clip-text text-transparent font-black cursor-pointer select-none"
                 >
                   {char}
                 </motion.span>
               ))}
             </span>
-          </motion.div>
+          </div>
         </h1>
 
         {/* INTERACTIVE SUBTITLE WITH HOVERABLE QUANTUM CONCEPTS */}

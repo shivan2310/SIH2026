@@ -63,7 +63,7 @@ export function LabRightSidebar({ code, codeErrors, result, onCodeChange, onCopy
                 </button>
               </div>
             </div>
-            <div className="flex-1 min-h-0 overflow-hidden rounded-lg border border-[#E5E7EB]">
+            <div className="flex-1 min-h-0 overflow-hidden rounded-xl">
               <CodePanel code={code} errors={codeErrors} onChange={onCodeChange} />
             </div>
           </div>

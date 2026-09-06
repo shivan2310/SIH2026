@@ -185,7 +185,39 @@ export function useCircuitLab() {
         const delta = qubit - lo;
         const moved = span.map((q) => q + delta);
         if (moved.some((q) => q < 0 || q >= prev.numQubits)) return prev;
-        if (!canPlace(prev, moved, column, id)) return prev;
+
+        // If target cell is occupied by another single-qubit gate, swap them!
+        if (!canPlace(prev, moved, column, id)) {
+          if (span.length === 1) {
+            const other = prev.gates.find(
+              (g) =>
+                g.id !== id &&
+                g.column === column &&
+                g.targets.includes(qubit) &&
+                g.controls.length === 0 &&
+                g.targets.length === 1,
+            );
+            if (other) {
+              const oldQubit = lo;
+              const next = {
+                ...prev,
+                gates: prev.gates.map((g) => {
+                  if (g.id === id) return { ...g, column, targets: [qubit] };
+                  if (g.id === other.id)
+                    return { ...g, column: gate.column, targets: [oldQubit] };
+                  return g;
+                }),
+              };
+              past.current = [...past.current.slice(-49), prev];
+              future.current = [];
+              setCode(circuitToCode(next));
+              setCodeErrors([]);
+              return next;
+            }
+          }
+          return prev;
+        }
+
         const next = {
           ...prev,
           gates: prev.gates.map((g) =>
@@ -198,6 +230,42 @@ export function useCircuitLab() {
                 }
               : g,
           ),
+        };
+        past.current = [...past.current.slice(-49), prev];
+        future.current = [];
+        setCode(circuitToCode(next));
+        setCodeErrors([]);
+        return next;
+      });
+      setHistoryTick((t) => t + 1);
+    },
+    [],
+  );
+
+  const reorderQubits = useCallback(
+    (fromQubit: number, toQubit: number) => {
+      if (fromQubit === toQubit) return;
+      setCircuitState((prev) => {
+        if (
+          fromQubit < 0 ||
+          fromQubit >= prev.numQubits ||
+          toQubit < 0 ||
+          toQubit >= prev.numQubits
+        ) {
+          return prev;
+        }
+        const swapQ = (q: number) => {
+          if (q === fromQubit) return toQubit;
+          if (q === toQubit) return fromQubit;
+          return q;
+        };
+        const next = {
+          ...prev,
+          gates: prev.gates.map((g) => ({
+            ...g,
+            controls: g.controls.map(swapQ),
+            targets: g.targets.map(swapQ),
+          })),
         };
         past.current = [...past.current.slice(-49), prev];
         future.current = [];
@@ -331,6 +399,7 @@ export function useCircuitLab() {
     clear,
     loadExample,
     loadCircuit,
+    reorderQubits,
     onCodeChange,
     undo,
     redo,

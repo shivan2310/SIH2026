@@ -178,7 +178,7 @@ function ChallengePage() {
 
             <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
               <h2 className="mb-4 text-lg font-bold text-[#111111]">Your circuit code</h2>
-              <div className="overflow-hidden rounded-xl border border-[#E5E7EB]">
+              <div className="overflow-hidden rounded-xl">
                 <CodePanel code={code} errors={errors} onChange={onChange} />
               </div>
             </div>

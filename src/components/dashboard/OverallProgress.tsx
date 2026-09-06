@@ -1,4 +1,4 @@
-import { ChevronRight, BookOpen, Target, Brain, Flame } from "lucide-react";
+import { BookOpen, Target, Brain, Flame } from "lucide-react";
 
 interface OverallProgressProps {
   completedLessons: number;
@@ -28,18 +28,16 @@ export function OverallProgress({
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className="relative flex h-full flex-col justify-between rounded-2xl border border-[#E7E7E7] bg-white p-6 shadow-sm">
+    <div className="relative flex h-full flex-col rounded-2xl border border-[#E7E7E7] bg-white p-6 shadow-sm">
       {/* Top Section */}
       <div className="flex items-start justify-between">
         <h2 className="text-lg font-bold text-[#111111]">Overall Progress</h2>
         
-        {/* Study Streak embedded in Top-Right */}
+        {/* Streak embedded in Top-Right */}
         <div className="flex flex-col items-end">
-          <div className="flex items-center gap-1 text-sm font-semibold text-[#111111] hover:text-[#F89864] cursor-pointer transition-colors">
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-[#111111]">
             <Flame className="h-4 w-4 text-[#F47F45]" fill="#F47F45" />
             <span>{streak} days</span>
-            <span className="text-[#707070] font-normal ml-1">Study Streak</span>
-            <ChevronRight className="h-4 w-4 text-[#707070]" />
           </div>
           {/* Day indicators */}
           <div className="mt-1 flex items-center gap-1">
@@ -53,8 +51,8 @@ export function OverallProgress({
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="mt-6 flex items-center gap-8">
+      {/* Main Content - Centered to remove awkward negative space */}
+      <div className="my-auto flex items-center gap-8 py-4">
         {/* Circular Ring */}
         <div className="relative flex items-center justify-center">
           <svg className="h-28 w-28 -rotate-90 transform">
@@ -114,6 +112,20 @@ export function OverallProgress({
               <p className="text-sm font-semibold text-[#111111]">{conceptsMastered} Concepts Mastered</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Bottom Summary Bar */}
+      <div className="mt-auto pt-4 border-t border-[#F0F0F0]">
+        <div className="flex items-center justify-between text-xs mb-2">
+          <span className="font-medium text-[#707070]">Curriculum Completed</span>
+          <span className="font-semibold text-[#111111]">{completedItems} of {totalItems} items</span>
+        </div>
+        <div className="h-2 w-full overflow-hidden rounded-full bg-[#F5F5F5]">
+          <div 
+            className="h-full rounded-full bg-[#F89864] transition-all duration-700" 
+            style={{ width: `${percentage}%` }}
+          />
         </div>
       </div>
     </div>
