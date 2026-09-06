@@ -1,9 +1,11 @@
 import { createMiddleware } from "@tanstack/react-start";
 import { SignJWT, jwtVerify } from "jose";
 
-const SESSION_SECRET = new TextEncoder().encode(
-  process.env["SESSION_SECRET"] || "default-secret-key-change-me-in-production"
-);
+function getSessionSecret() {
+  return new TextEncoder().encode(
+    process.env["SESSION_SECRET"] || "default-secret-key-change-me-in-production"
+  );
+}
 
 const COOKIE_NAME = "qlab_session";
 
@@ -12,7 +14,7 @@ export async function getSessionUserId(): Promise<string | null> {
   const token = getCookie(COOKIE_NAME);
   if (!token) return null;
   try {
-    const { payload } = await jwtVerify(token, SESSION_SECRET);
+    const { payload } = await jwtVerify(token, getSessionSecret());
     return payload.sub || null;
   } catch {
     return null;
@@ -25,7 +27,7 @@ export async function createSession(userId: string) {
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
-    .sign(SESSION_SECRET);
+    .sign(getSessionSecret());
 
   setCookie(COOKIE_NAME, token, {
     httpOnly: true,

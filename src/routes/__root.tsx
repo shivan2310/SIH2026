@@ -11,6 +11,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import katexCss from "katex/dist/katex.min.css?url";
 import { Toaster } from "../components/ui/sonner";
 import { GlobalAIChat } from "@/components/quantum/GlobalAIChat";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -92,6 +93,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "stylesheet",
+        href: katexCss,
       },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {

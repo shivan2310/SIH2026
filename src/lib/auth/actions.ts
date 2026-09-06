@@ -16,7 +16,7 @@ export const getAuthSession = createServerFn({ method: "GET" }).handler(async ()
 });
 
 export const getUserProfile = createServerFn({ method: "GET" })
-  .validator((input: { userId?: string }) => input)
+  .validator((input: { userId?: string | undefined }) => input)
   .handler(async ({ data: { userId } }) => {
     if (!userId) return null;
 

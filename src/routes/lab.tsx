@@ -230,17 +230,17 @@ function LabPage() {
           {/* Bottom Analytics Area */}
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_1fr_380px]">
             {/* Simulation Results */}
-            <div className="h-[400px]">
+            <div className="h-[400px] min-h-0">
               <ResultsPanel result={result} step={step} />
             </div>
 
             {/* Bloch Spheres */}
-            <div className="h-[400px]">
+            <div className="h-[400px] min-h-0">
               <BlochSphereDisplay state={viewState} />
             </div>
 
             {/* Circuit Insights */}
-            <div className="h-[400px]">
+            <div className="h-[400px] min-h-0">
               <CircuitInsights circuitCode={lab.code} result={lab.result} />
             </div>
           </div>

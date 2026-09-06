@@ -43,12 +43,16 @@ export function LabRightSidebar({ code, codeErrors, result, onCodeChange, onCopy
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-        {activeTab === "ai" ? (
+      <div className="flex-1 min-h-0 flex flex-col p-4 custom-scrollbar">
+        {/* AI Tutor Panel - Kept mounted so chat state is preserved across tab switching */}
+        <div className={`flex-1 min-h-0 flex-col ${activeTab === "ai" ? "flex" : "hidden"}`}>
           <AIPanel code={code} result={result} onApplyCode={onCodeChange} />
-        ) : (
-          <div className="flex flex-col h-full">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        </div>
+
+        {/* Code Panel - Kept mounted */}
+        <div className={`flex-1 min-h-0 flex-col ${activeTab === "code" ? "flex" : "hidden"}`}>
+          <div className="flex flex-col h-full min-h-0">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 shrink-0">
               <h3 className="text-sm font-bold text-[#111111]">Qiskit Generated Code</h3>
               <div className="flex gap-2">
                 <button onClick={onCopyQiskit} className="flex h-8 items-center rounded-lg border border-[#E5E7EB] bg-white px-3 text-xs font-semibold text-[#707070] transition-colors hover:bg-gray-50 hover:text-[#111111]">
@@ -59,11 +63,11 @@ export function LabRightSidebar({ code, codeErrors, result, onCodeChange, onCopy
                 </button>
               </div>
             </div>
-            <div className="flex-1 overflow-hidden rounded-lg border border-[#E5E7EB]">
+            <div className="flex-1 min-h-0 overflow-hidden rounded-lg border border-[#E5E7EB]">
               <CodePanel code={code} errors={codeErrors} onChange={onCodeChange} />
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
