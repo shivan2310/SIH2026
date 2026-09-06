@@ -18,6 +18,7 @@ import {
 import { getBackend } from "@/lib/quantum/backend";
 import type { SimulationResult } from "@/lib/quantum/simulator";
 import { exampleCircuit } from "@/lib/quantum/examples";
+import { useStudyLog } from "@/hooks/useStudyLog";
 
 const STORAGE_KEY = "quantumlab.circuit.v1";
 
@@ -52,6 +53,7 @@ export function useCircuitLab() {
   const [seed, setSeed] = useState(1337);
   const [backendId, setBackendId] = useState("browser-statevector");
   const [step, setStep] = useState(0);
+  const { addEntry } = useStudyLog();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const past = useRef<QCircuit[]>([]);
@@ -338,11 +340,18 @@ export function useCircuitLab() {
     setRunError(null);
     try {
       // Small simulated execution latency (350ms) so user perceives real computation
+      const start = Date.now();
       await new Promise((resolve) => setTimeout(resolve, 350));
       const backend = getBackend(backendId);
       const res = await backend.run(circuit, { shots, seed, trace: true });
       setResult(res);
       setStep(res.steps.length - 1);
+      // Record study time based on execution duration
+      const durationMs = Date.now() - start;
+      const minutes = Math.round(durationMs / 60000);
+      if (minutes > 0) {
+        addEntry(new Date().toISOString().slice(0, 10), minutes);
+      }
       return res;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Simulation failed.";
