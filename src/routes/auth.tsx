@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { signIn as localSignIn, signUp as localSignUp } from "@/lib/auth/actions";
 import { useSession } from "@/hooks/useSession";
 import { useQueryClient } from "@tanstack/react-query";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -42,6 +43,10 @@ function AuthPage() {
   useEffect(() => {
     if (!loading && user) void navigate({ to: "/lab", replace: true });
   }, [loading, user, navigate]);
+
+  if (loading) {
+    return <LoadingScreen fullPage message="Verifying session..." subtext="Connecting to QuantumLab cloud" />;
+  }
 
   async function signIn(e: React.FormEvent) {
     e.preventDefault();

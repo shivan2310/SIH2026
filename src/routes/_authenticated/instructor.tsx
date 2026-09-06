@@ -18,6 +18,7 @@ import { useSession } from "@/hooks/useSession";
 import { LESSONS } from "@/lib/learn/content";
 import { CHALLENGES } from "@/lib/learn/challenges";
 import { getInstructorCohorts, getInstructorCohortDetails, createCohort as createCohortAction, addAssignment as addAssignmentAction, removeAssignment as removeAssignmentAction } from "@/lib/cohorts/actions";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export const Route = createFileRoute("/_authenticated/instructor")({
   head: () => ({
@@ -191,9 +192,9 @@ function InstructorPage() {
         </div>
 
         {loading ? (
-          <p className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Loading classesâ€¦
-          </p>
+          <div className="mt-6">
+            <LoadingScreen fullPage={false} message="Loading classes..." subtext="Fetching instructor cohorts and student data" />
+          </div>
         ) : cohorts.length === 0 ? (
           <p className="mt-6 text-sm text-muted-foreground">
             No classes yet â€” create one above.

@@ -1,5 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { DashboardNavbar as AppHeader } from "@/components/dashboard/DashboardNavbar";
+import { InteractiveHeroText } from "@/components/landing/InteractiveHeroText";
+import { motion } from "framer-motion";
 import {
   Binary,
   CircuitBoard,
@@ -57,54 +59,58 @@ const PHASE1 = [
 
 function Home() {
   return (
-    <div className="min-h-screen bg-[#F5F5F5] font-sans text-[#111111]">
+    <div className="min-h-screen bg-[#FAFAFA] font-sans text-[#111111] selection:bg-orange-500 selection:text-white">
       <AppHeader />
       <main>
-        <section className="mx-auto max-w-5xl px-4 pb-20 pt-24 text-center">
-          <p className="mb-6 font-mono text-xs font-bold uppercase tracking-[0.3em] text-[#F47F45]">
-            Interactive quantum education
-          </p>
-          <h1 className="text-balance text-5xl font-extrabold tracking-tight leading-tight sm:text-7xl text-[#111111]">
-            Stop reading about qubits.
-            <br />
-            <span className="text-[#F47F45]">Start moving them.</span>
-          </h1>
-          <p className="mx-auto mt-8 max-w-2xl text-pretty text-lg font-medium text-[#707070] sm:text-xl leading-relaxed">
-            QuantumLab turns superposition, entanglement and quantum algorithms
-            into something you can build, run and watch — a circuit lab in your
-            browser with no installs and no hardware queue.
-          </p>
-          <div className="mt-12 flex flex-wrap justify-center gap-4">
-            <Link
-              to="/lab"
-              className="inline-flex h-14 items-center justify-center rounded-xl bg-[#F47F45] px-8 text-base font-bold text-white shadow-sm transition-colors hover:bg-[#E3692E]"
-            >
-              Open the Circuit Lab
-            </Link>
-            <Link
-              to="/lab"
-              hash="examples"
-              className="inline-flex h-14 items-center justify-center rounded-xl border-2 border-[#E5E7EB] bg-white px-8 text-base font-bold text-[#111111] transition-colors hover:border-[#F47F45] hover:bg-gray-50"
-            >
-              Try the Bell state
-            </Link>
-          </div>
-        </section>
+        {/* INTERACTIVE MOVING TYPOGRAPHY HERO SECTION */}
+        <InteractiveHeroText />
 
-        <section className="mx-auto max-w-6xl px-4 pb-24">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {PHASE1.map((f) => (
-              <article key={f.title} className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md hover:border-[#F47F45]">
-                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#F47F45]/10">
-                  <f.icon className="h-6 w-6 text-[#F47F45]" />
+        {/* FEATURE CARDS SECTION WITH STAGGER & HOVER MOTION */}
+        <section className="mx-auto max-w-6xl px-4 pb-24 relative z-10">
+          <motion.div
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: { opacity: 0 },
+              show: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.12,
+                },
+              },
+            }}
+            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
+          >
+            {PHASE1.map((f, idx) => (
+              <motion.article
+                key={f.title}
+                variants={{
+                  hidden: { opacity: 0, y: 30 },
+                  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+                }}
+                whileHover={{
+                  y: -8,
+                  scale: 1.03,
+                  borderColor: "#F47F45",
+                  boxShadow: "0 20px 25px -5px rgba(244, 127, 69, 0.15), 0 8px 10px -6px rgba(244, 127, 69, 0.1)",
+                }}
+                className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 relative overflow-hidden"
+              >
+                {/* Subtle warm orange top border highlight on hover */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-400 via-orange-500 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-orange-50 text-[#F47F45] transition-transform duration-300 group-hover:scale-110 group-hover:bg-[#F47F45] group-hover:text-white">
+                  <f.icon className="h-6 w-6 transition-colors" />
                 </div>
-                <h2 className="mb-2 text-lg font-bold text-[#111111]">{f.title}</h2>
-                <p className="text-sm font-medium leading-relaxed text-[#707070]">
+                <h2 className="mb-2 text-lg font-bold text-[#111111] group-hover:text-[#EA580C] transition-colors">
+                  {f.title}
+                </h2>
+                <p className="text-sm font-medium leading-relaxed text-[#666666]">
                   {f.body}
                 </p>
-              </article>
+              </motion.article>
             ))}
-          </div>
+          </motion.div>
         </section>
       </main>
       <footer className="border-t border-[#E5E7EB] bg-white py-10 text-center font-mono text-xs font-bold text-[#707070]">

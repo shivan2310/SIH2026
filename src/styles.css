@@ -70,25 +70,25 @@
 :root {
   --radius: 0.5rem;
 
-  --background: oklch(0.16 0.028 264);
-  --foreground: oklch(0.95 0.008 250);
-  --card: oklch(0.2 0.03 264);
-  --card-foreground: oklch(0.95 0.008 250);
-  --popover: oklch(0.21 0.032 264);
-  --popover-foreground: oklch(0.95 0.008 250);
-  --primary: oklch(0.79 0.15 195);
-  --primary-foreground: oklch(0.17 0.03 264);
-  --secondary: oklch(0.27 0.035 264);
-  --secondary-foreground: oklch(0.93 0.01 250);
-  --muted: oklch(0.25 0.03 264);
-  --muted-foreground: oklch(0.68 0.025 254);
-  --accent: oklch(0.66 0.19 300);
-  --accent-foreground: oklch(0.97 0.01 250);
+  --background: oklch(0.985 0.005 60);
+  --foreground: oklch(0.18 0.02 40);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.02 40);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.02 40);
+  --primary: oklch(0.65 0.22 38);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.96 0.02 60);
+  --secondary-foreground: oklch(0.18 0.02 40);
+  --muted: oklch(0.96 0.01 60);
+  --muted-foreground: oklch(0.48 0.02 50);
+  --accent: oklch(0.94 0.04 60);
+  --accent-foreground: oklch(0.55 0.22 38);
   --destructive: oklch(0.62 0.21 20);
   --destructive-foreground: oklch(0.97 0.01 250);
-  --border: oklch(0.3 0.035 264);
-  --input: oklch(0.3 0.035 264);
-  --ring: oklch(0.79 0.15 195);
+  --border: oklch(0.91 0.015 60);
+  --input: oklch(0.91 0.015 60);
+  --ring: oklch(0.65 0.22 38);
 
   --surface: oklch(0.19 0.03 264);
   --surface-raised: oklch(0.24 0.033 264);
@@ -188,3 +188,23 @@
 @utility animate-slide-in {
   animation: slideInFromRight 0.3s ease-out forwards;
 }
+
+@keyframes loadingBar {
+  0% {
+    left: -40%;
+    width: 40%;
+  }
+  50% {
+    left: 20%;
+    width: 60%;
+  }
+  100% {
+    left: 100%;
+    width: 40%;
+  }
+}
+
+@utility animate-loading-bar {
+  animation: loadingBar 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+

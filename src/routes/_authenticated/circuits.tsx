@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { circuitDepth, type QCircuit } from "@/lib/quantum/ir";
 import { getUserCircuits, toggleCircuitShare, deleteCircuit } from "@/lib/circuits/actions";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export const Route = createFileRoute("/_authenticated/circuits")({
   head: () => ({
@@ -120,15 +121,13 @@ function CircuitsPage() {
         </div>
 
         {rows === null && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Loading your workspaceâ€¦
-          </div>
+          <LoadingScreen fullPage={false} message="Loading your workspace..." subtext="Fetching saved quantum circuits" />
         )}
 
         {rows?.length === 0 && (
           <div className="panel p-10 text-center">
             <p className="text-sm text-muted-foreground">
-              No saved circuits yet. Build one in the lab and hit â€œSave to cloudâ€.
+              No saved circuits yet. Build one in the lab and hit â€œSave to cloudâ€ .
             </p>
             <Button asChild className="mt-4">
               <Link to="/lab">Open the Circuit Lab</Link>

@@ -15,6 +15,8 @@ import { CourseProgress, CourseData } from "@/components/dashboard/CourseProgres
 import { Mastery, MasteryItem } from "@/components/dashboard/Mastery";
 import { NextMilestone } from "@/components/dashboard/NextMilestone";
 
+import { LoadingScreen } from "@/components/LoadingScreen";
+
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
@@ -126,8 +128,8 @@ function DashboardPage() {
         <DashboardHeader />
 
         {progress.loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-[#F47F45]" />
+          <div className="py-8">
+            <LoadingScreen fullPage={false} message="Loading your dashboard..." subtext="Fetching progress metrics and learning stats" />
           </div>
         ) : (
           <div className="flex flex-col gap-6">

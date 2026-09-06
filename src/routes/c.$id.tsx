@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { getSharedCircuit } from "@/lib/circuits/actions";
 import { circuitToCode } from "@/lib/quantum/code";
 import { circuitDepth, type QCircuit } from "@/lib/quantum/ir";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export const Route = createFileRoute("/c/$id")({
   ssr: false,
@@ -70,9 +71,7 @@ function SharedCircuitPage() {
       <AppHeader />
       <main className="mx-auto max-w-4xl px-4 py-10">
         {state === "loading" && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Loading circuitâ€¦
-          </div>
+          <LoadingScreen fullPage={false} message="Loading shared circuit..." subtext="Retrieving quantum gates and metadata" />
         )}
 
         {state === "missing" && (

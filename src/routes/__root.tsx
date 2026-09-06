@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { Toaster } from "../components/ui/sonner";
 import { GlobalAIChat } from "@/components/quantum/GlobalAIChat";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 
 function NotFoundComponent() {
@@ -108,6 +109,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
   shellComponent: RootShell,
   component: RootComponent,
+  pendingComponent: () => <LoadingScreen fullPage message="Loading QuantumLab..." />,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
