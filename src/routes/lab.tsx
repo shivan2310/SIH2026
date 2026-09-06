@@ -16,6 +16,7 @@ import { CircuitInsights } from "@/components/quantum/CircuitInsights";
 import { SaveCircuitPanel } from "@/components/quantum/SaveCircuitPanel";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export const Route = createFileRoute("/lab")({
   validateSearch: (
@@ -29,6 +30,15 @@ export const Route = createFileRoute("/lab")({
       { title: "Circuit Lab | QuantumLab" },
     ],
   }),
+  loader: async () => {
+    await new Promise((resolve) => setTimeout(resolve, 450));
+  },
+  pendingComponent: () => (
+    <LoadingScreen
+      message="Loading Circuit Lab..."
+      subtext="Initializing quantum wire canvas, gate palette & simulator engine"
+    />
+  ),
   component: LabPage,
 });
 

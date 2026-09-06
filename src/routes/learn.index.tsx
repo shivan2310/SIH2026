@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/hooks/useSession";
 import { useProgress } from "@/hooks/useProgress";
 import { TRACKS, lessonsOfTrack } from "@/lib/learn/content";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export const Route = createFileRoute("/learn/")({
   head: () => ({
@@ -25,6 +26,15 @@ export const Route = createFileRoute("/learn/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  loader: async () => {
+    await new Promise((resolve) => setTimeout(resolve, 450));
+  },
+  pendingComponent: () => (
+    <LoadingScreen
+      message="Loading Quantum Courses..."
+      subtext="Preparing learning tracks, interactive lessons & quizzes"
+    />
+  ),
   component: LearnIndex,
 });
 

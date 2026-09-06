@@ -23,6 +23,12 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       { title: "Learner dashboard | QuantumLab" },
     ],
   }),
+  pendingComponent: () => (
+    <LoadingScreen
+      message="Loading Learner Dashboard..."
+      subtext="Gathering quantum metrics, study stats & progress tracking"
+    />
+  ),
   component: DashboardPage,
 });
 

@@ -11,6 +11,8 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
+    defaultPendingMs: 0,
+    defaultPendingMinMs: 500,
     defaultPendingComponent: () => <LoadingScreen fullPage message="Loading QuantumLab..." />,
   });
 

@@ -4,11 +4,12 @@ import { DashboardNavbar as AppHeader } from "@/components/dashboard/DashboardNa
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BACKENDS, remoteServiceConfigured } from "@/lib/quantum/backend";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export const Route = createFileRoute("/backends")({
   head: () => ({
     meta: [
-      { title: "Simulator backends â€” Qiskit, PennyLane, Cirq, qBraid | QuantumLab" },
+      { title: "Simulator backends — Qiskit, PennyLane, Cirq, qBraid | QuantumLab" },
       {
         name: "description",
         content:
@@ -24,6 +25,12 @@ export const Route = createFileRoute("/backends")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  pendingComponent: () => (
+    <LoadingScreen
+      message="Loading Hardware Backends..."
+      subtext="Querying quantum hardware providers, Qiskit & simulator status"
+    />
+  ),
   component: BackendsPage,
 });
 

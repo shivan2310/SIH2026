@@ -12,6 +12,7 @@ import { getChallenge, gradeChallenge, type GradeResult } from "@/lib/learn/chal
 import { parseCode, type ParseError } from "@/lib/quantum/code";
 import { basisLabel, simulate } from "@/lib/quantum/simulator";
 import type { QCircuit } from "@/lib/quantum/ir";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export const Route = createFileRoute("/challenges/$challengeId")({
   loader: ({ params }) => {
@@ -43,6 +44,12 @@ export const Route = createFileRoute("/challenges/$challengeId")({
   },
   errorComponent: () => <ChallengeMissing />,
   notFoundComponent: () => <ChallengeMissing />,
+  pendingComponent: () => (
+    <LoadingScreen
+      message="Loading Quantum Challenge..."
+      subtext="Preparing puzzle state, verification tests & workspace"
+    />
+  ),
   component: ChallengePage,
 });
 

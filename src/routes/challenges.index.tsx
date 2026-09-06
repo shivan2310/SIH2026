@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/hooks/useSession";
 import { useProgress } from "@/hooks/useProgress";
 import { CHALLENGES } from "@/lib/learn/challenges";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export const Route = createFileRoute("/challenges/")({
   head: () => ({
@@ -25,6 +26,15 @@ export const Route = createFileRoute("/challenges/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  loader: async () => {
+    await new Promise((resolve) => setTimeout(resolve, 450));
+  },
+  pendingComponent: () => (
+    <LoadingScreen
+      message="Loading Quantum Challenges..."
+      subtext="Fetching circuit puzzles, difficulty levels & auto-grader engine"
+    />
+  ),
   component: ChallengesIndex,
 });
 

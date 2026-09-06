@@ -38,6 +38,12 @@ export const Route = createFileRoute("/_authenticated/instructor")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  pendingComponent: () => (
+    <LoadingScreen
+      message="Loading Instructor Hub..."
+      subtext="Fetching cohort analytics, student rosters & assignments"
+    />
+  ),
   component: InstructorPage,
 });
 

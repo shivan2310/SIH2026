@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/hooks/useSession";
 import { saveLessonProgress, useProgress } from "@/hooks/useProgress";
 import { getLesson, neighbours, trackOf, type Lesson } from "@/lib/learn/content";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export const Route = createFileRoute("/learn/$lessonId")({
   loader: ({ params }) => {
@@ -40,6 +41,12 @@ export const Route = createFileRoute("/learn/$lessonId")({
   },
   errorComponent: () => <LessonMissing />,
   notFoundComponent: () => <LessonMissing />,
+  pendingComponent: () => (
+    <LoadingScreen
+      message="Loading Quantum Lesson..."
+      subtext="Initializing lesson circuit workspace, explanation & AI tutor"
+    />
+  ),
   component: LessonPage,
 });
 

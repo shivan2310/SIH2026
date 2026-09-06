@@ -36,6 +36,12 @@ export const Route = createFileRoute("/_authenticated/circuits")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  pendingComponent: () => (
+    <LoadingScreen
+      message="Loading My Circuits..."
+      subtext="Fetching your saved quantum circuits & cloud workspace"
+    />
+  ),
   component: CircuitsPage,
 });
 
